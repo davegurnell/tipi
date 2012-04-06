@@ -62,7 +62,7 @@ As a way of illustrating this, here is a Javascript fragment that is semanticall
 
     document.write(main());
 
-## Syntax
+## Writing template files
 
 ### Tags and arguments
 
