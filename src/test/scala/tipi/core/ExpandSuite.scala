@@ -64,7 +64,7 @@ class ExpandSuite extends FunSuite {
     }
   }
 
-  test("bind to variable") {
+  test("variable bound to variable") {
     val source =
       """
       |{{def x "x"}}
@@ -78,6 +78,29 @@ class ExpandSuite extends FunSuite {
       |
       |
       |x
+      """.trim.stripMargin
+    }
+  }
+
+  test("bind tags expanded at the call site") {
+    val source =
+      """
+      |{{def y "y1"}}
+      |{{def z "z1"}}
+      |{{#def x}}c{{y}}d{{/def}}
+      |{{def z "z2"}}
+      |{{#x}}{{#bind y}}{{z}}{{/bind}}{{/x}}
+      """.trim.stripMargin
+
+    assert {
+      println("====================================")
+      Render(Expand((Env.basic, parser(source).get))) ===
+      """
+      |
+      |
+      |
+      |
+      |cz2d
       """.trim.stripMargin
     }
   }

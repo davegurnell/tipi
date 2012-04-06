@@ -25,7 +25,7 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
   lazy val tagName: Id = defnArgs.head
   lazy val argNames: List[Id] = defnArgs.tail
 
-  def localEnv(doc: Block): Env = {
+  def localEnv(callingEnv: Env, doc: Block): Env = {
     val thisKeywordEnv =
       Env.empty + (Id("this") -> doc.body)
 
@@ -38,8 +38,10 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
     val bindEnv = {
       def loop(env: Env, doc: Doc): Env = {
         doc match {
-          case Block(Id("bind"), IdArgument(name) :: _, body) => env + (name -> body)
-          case Range(children)                                => children.foldLeft(env)(loop)
+          case Block(Id("bind"), IdArgument(name) :: _, body) =>
+            env + (name -> Expand((callingEnv, body))._2)
+          case Range(children) =>
+            children.foldLeft(env)(loop)
           case _ => env
         }
       }
@@ -63,7 +65,17 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
   def apply(in: (Env, Doc)) = {
     val (callingEnv, inDoc) = in
-    val localEnv = this.localEnv(inDoc.asInstanceOf[Block])
+
+    val localEnv = this.localEnv(callingEnv, inDoc.asInstanceOf[Block])
+
+    // println(
+    //   """
+    //   |Call %s
+    //   |  %s
+    //   |  %s
+    //   """.trim.stripMargin.format(tagName, localEnv, inDoc)
+    // )
+
     val (_, outDoc) = Expand(localEnv, defn.body)
     (callingEnv, outDoc)
   }

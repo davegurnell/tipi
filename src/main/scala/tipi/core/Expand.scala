@@ -4,6 +4,14 @@ object Expand {
   def apply(in: (Env, Doc)): (Env, Doc) = {
     val (env, doc) = in
 
+    // println(
+    //   """
+    //   |Expand
+    //   |  %s
+    //   |  %s
+    //   """.trim.stripMargin.format(env, doc)
+    // )
+
     doc match {
       case doc @ Block(name, _, _) =>
         env.get(name).apply((env, doc))
