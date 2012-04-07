@@ -1,4 +1,4 @@
-# *Tipi* Templating Engine
+# Tipi: Tiny Templating Engine
 
 Copyright 2012 [Dave Gurnell] and [Chris Ross].
 
@@ -6,7 +6,7 @@ Copyright 2012 [Dave Gurnell] and [Chris Ross].
 
 **Tipi is currently in early alpha. Everything may be subject to change.**
 
-## Overview
+# Overview
 
 Tipi's syntax is based on [Mustache]. However, its engine is a little more powerful.
 
@@ -62,9 +62,9 @@ As a way of illustrating this, here is a Javascript fragment that is semanticall
 
     document.write(main());
 
-## Writing template files
+# Writing template files
 
-### Tags and arguments
+## Tags and arguments
 
 Tipi syntax involves three types of *tag*:
 
@@ -79,7 +79,7 @@ Opening and singleton tags optionally take a list of arguments. Closing tags may
       {{# hobbies }}Music, running{{/ hobbies }}
     {{/ person }}
 
-### Defining templates
+## Defining templates
 
 By default, Tipi recognises only three built-in templates: `def`, `bind`, and `this`.
 
@@ -103,7 +103,7 @@ The two forms are semantically similar. Think of them as function definitions in
       return name + " has a web site at " + url;
     }
 
-### Invoking templates
+## Invoking templates
 
 Once you have defined a template using `def`, you can *invoke* it by writing its name as a tag:
 
@@ -111,7 +111,7 @@ Once you have defined a template using `def`, you can *invoke* it by writing its
 
     {{ person "Dave" "boxandarrow.com" }} // ==> "Dave has a web site at boxandarrow.com"
 
-### Passing blocks using `this`
+## Passing blocks using `this`
 
 For more verbose invocations, you can pass a block of text as an argument using the `this` built-in:
 
@@ -131,7 +131,7 @@ Tags in the argument are expanded *before* it is passed to the template. This ma
 
     x(y())
 
-### Passing named blocks using `bind`
+## Passing named blocks using `bind`
 
 You can pass multiple named blocks as argument using the `bind` built-in:
 
@@ -165,7 +165,7 @@ As with `this`-style arguments, `bind` blocks are expanded before they are passe
 
 While it is possible to mix normal, `this` and `bind` arguments, we recommend you stick to one kind of argument for each template you write. Otherwise things can become confusing.
 
-## Running Tipi from Scala
+# Running Tipi from Scala
 
 First, create a `Tipi` object:
 
@@ -192,9 +192,9 @@ You can also specify the global environment used in the *expand* phase of compil
 
 Take a look at `Env.scala` and `Transform.scala` to see how to do this.
 
-## How it works
+# How it works
 
-### Parsing
+## Parsing
 
 Tipi parses these tags into a DOM tree, where each branch is a block and each leaf is a text node. For example, the document:
 
@@ -211,7 +211,7 @@ would be parsed as follows:
     - block "hobbies"
        - text "Music, running"
 
-### Evaluation
+## Expansion
 
 Once Tipi has parsed the document, it *expands* the DOM tree, invoking all the templates it can to produce the final document.
 
@@ -231,9 +231,60 @@ Expansion involves a pre-order walk of the tree within the context of an *enviro
    new items to the environment. These new items are then available for Tipi
    to use when it is expanding later blocks in the tree.
 
-### Rendering
+## Rendering
 
 After expansion, Tipi *renders* the final DOM tree by removing any remaining tags and returning the remaining text content.
+
+# To do
+
+Tipi is a work in progress. These are some ideas for imminent changes:
+
+## Simplify argument passing
+
+Unify the three types of argument. People expect tags to be like HTML, so passing *all* arguments by name makes more sense:
+
+ - Template arguments should be name/value pairs, like HTML attributes.
+
+       {{# def page title="Default title" }}
+         // ...
+       {{/ def }}
+
+       {{ page title="Overridden title" }}
+
+ - Omitting a default value is like setting the default value to "".
+
+ - Both regular and `bind` arguments have to be declared in the template header, allowing you to choose the type of argument:
+
+       {{# def page title="Default title" }}
+         // ...
+       {{/ def }}
+
+       {{ page }}
+         {{# bind title }}
+           Overridden title
+         {{/ bind }}
+
+ - If `bind` arguments are passed to a template, and `this` is used in the template, the `bind`s are removed from the `this` content before it is used. May to lazily evaluate `bind` and `this` to prevent the template doing too much work.
+
+## Simplify initialization of the environment from Scala
+
+We need pimps for `Ids` and `Transformers` from things like functions, partial functions, and common data types.
+
+# Licence
+
+Copyright 2011-12 [Dave Gurnell] and [Chris Ross]
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 [Dave Gurnell]: http://boxandarrow.com
 [Chris Ross]: http://darkrock.co.uk
