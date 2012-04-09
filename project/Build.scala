@@ -9,7 +9,7 @@ object Build extends Build {
     base = file("."),
     settings = Project.defaultSettings ++ Seq(
       organization := "com.untyped",
-      version := "0.1",
+      version := "0.1-SNAPSHOT",
       name := "tipi",
       scalaVersion := "2.9.1",
       scalacOptions += "-deprecation",
@@ -23,7 +23,7 @@ object Build extends Build {
           path    <- Option(System.getenv("DEFAULT_IVY_REPO_PATH"))
           user    <- Option(System.getenv("DEFAULT_IVY_REPO_USER"))
           keyfile <- Option(System.getenv("DEFAULT_IVY_REPO_KEYFILE"))
-        } yield Resolver.sftp("Untyped", host, path).as(user, file(keyfile))
+        } yield Resolver.sftp("Untyped", host, path)(Resolver.ivyStylePatterns).as(user, file(keyfile))
       },
       publishMavenStyle := false
     )
