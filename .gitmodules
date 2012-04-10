@@ -1,0 +1,3 @@
+[submodule "src/test/resources/tipitests"]
+	path = src/test/resources/tipitests
+	url = git@github.com:hiddenmemory/TipiTests
