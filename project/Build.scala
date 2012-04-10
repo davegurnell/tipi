@@ -2,7 +2,8 @@ import sbt._
 import sbt.Keys._
 
 object Build extends Build {
-  val scalatest = "org.scalatest" %% "scalatest" % "1.7.1"
+  lazy val scalatest = "org.scalatest"           %% "scalatest" % "1.7.1"
+  lazy val slf4s     = "com.weiglewilczek.slf4s" %% "slf4s"     % "1.0.7"
 
   lazy val root = Project(
     id = "root",
@@ -15,7 +16,8 @@ object Build extends Build {
       scalacOptions += "-deprecation",
       scalacOptions += "-unchecked",
       libraryDependencies ++= Seq(
-        scalatest % "test"
+        scalatest % "test",
+        slf4s
       ),
       publishTo := {
         for {

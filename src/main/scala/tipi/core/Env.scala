@@ -13,6 +13,18 @@ case class Env(val bindings: Map[Id, Transform]) {
     Env(this.bindings ++ that.bindings)
   }
 
+  def -- (that: Env): Env = {
+    Env(this.bindings -- that.bindings.keys)
+  }
+
+  def -- (ids: TraversableOnce[Id]): Env = {
+    Env(this.bindings -- ids)
+  }
+
+  def - (id: Id): Env = {
+    Env(this.bindings - id)
+  }
+
   override def toString = {
     "Env(%s)".format(bindings.toList.map {
       case (id, value) =>

@@ -1,5 +1,7 @@
 package tipi.core
 
+import com.weiglewilczek.slf4s.Logging
+
 object Template {
   object IdArguments {
     def unapply(args: List[Argument[_]]): Option[List[Id]] = {
@@ -12,7 +14,7 @@ object Template {
   }
 }
 
-case class Template(val defn: Block, val globalEnv: Env) extends Transform with TransformImplicits {
+case class Template(val defn: Block, val globalEnv: Env) extends Transform with TransformImplicits with Logging{
   import Template._
 
   def defnArgs: List[Id] = {
@@ -68,13 +70,13 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
     val localEnv = this.localEnv(callingEnv, inDoc.asInstanceOf[Block])
 
-    // println(
-    //   """
-    //   |Call %s
-    //   |  %s
-    //   |  %s
-    //   """.trim.stripMargin.format(tagName, localEnv, inDoc)
-    // )
+    logger.debug(
+      """
+      |Template %s
+      |  %s
+      |  %s
+      """.trim.stripMargin.format(tagName, localEnv, inDoc)
+    )
 
     val (_, outDoc) = Expand(localEnv, defn.body)
     (callingEnv, outDoc)

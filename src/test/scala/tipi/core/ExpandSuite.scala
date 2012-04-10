@@ -93,7 +93,6 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      println("====================================")
       Render(Expand((Env.basic, parser(source).get))) ===
       """
       |

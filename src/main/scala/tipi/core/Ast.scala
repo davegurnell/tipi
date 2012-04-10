@@ -3,8 +3,16 @@ package tipi.core
 import util.parsing.input.Positional
 
 trait Doc extends Positional
-case class Block(val name: Id, val args: List[Argument[_]], val body: Range = Range.Empty) extends Doc
-case class Range(val children: List[Doc]) extends Doc
+case class Block(val name: Id, val args: List[Argument[_]], val body: Range = Range.Empty) extends Doc {
+  override def toString = {
+    "Block(%s,Args(%s),%s)".format(name.name, args.mkString(", "), body)
+  }
+}
+case class Range(val children: List[Doc]) extends Doc {
+  override def toString = {
+    "Range(%s)".format(children.mkString(", "))
+  }
+}
 case class Text(val value: String) extends Doc
 
 object Range {
