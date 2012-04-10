@@ -9,7 +9,7 @@ class TemplateSuite extends FunSuite {
   val argsTemplate = Template(
     parse(
       """
-      |{{# def page title author }}
+      |{{# def page title="Default title" author="Default author" }}
       |<html>
       |  <head>
       |    <title>{{ title }}</title>
@@ -20,14 +20,14 @@ class TemplateSuite extends FunSuite {
       |{{/ def }}
       """.trim.stripMargin
     ).get.asInstanceOf[Block],
-    Env.empty
+    Env.basic
   )
 
   val argsIn = (
-    Env.empty,
+    Env.basic,
     parse(
       """
-      |{{# page "Title" "Author" }}
+      |{{# page title="Title" author="Author" }}
       |  Foo
       |  Bar
       |  Baz
@@ -39,7 +39,7 @@ class TemplateSuite extends FunSuite {
   val bindTemplate = Template(
     parse(
       """
-      |{{# def page }}
+      |{{# def page title author }}
       |<html>
       |  <head>
       |    <title>{{ title }}</title>
@@ -50,11 +50,11 @@ class TemplateSuite extends FunSuite {
       |{{/ def }}
       """.trim.stripMargin
     ).get.asInstanceOf[Block],
-    Env.empty
+    Env.basic
   )
 
   val bindIn = (
-    Env.empty,
+    Env.basic,
     parse(
       """
       |{{# page }}
@@ -67,18 +67,24 @@ class TemplateSuite extends FunSuite {
   )
 
   val wrongNameIn = (
-    Env.empty,
+    Env.basic,
     parse(
       """
-      {{# pages "Title" "Body" }}
+      {{# pages title="Title" body="Body" }}
       {{/ pages }}
       """
     ).get
   )
 
   test("Template.argNames") {
-    assert(argsTemplate.argNames === List(Id("title"), Id("author")))
-    assert(bindTemplate.argNames === List())
+    assert(argsTemplate.defnEnv === Env.basic ++ Env(Map(
+      Id("title") -> Transform.constant(Text("Default title")),
+      Id("author") -> Transform.constant(Text("Default author"))
+    )))
+    assert(bindTemplate.defnEnv === Env.basic ++ Env(Map(
+      Id("title") -> Transform.constant(Range.Empty),
+      Id("author") -> Transform.constant(Range.Empty)
+    )))
   }
 
   test("Template.isDefinedAt - args") {

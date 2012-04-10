@@ -23,11 +23,12 @@ object Transform {
 
   def argToTransform(arg: Argument[_], env: Env): Transform = {
     arg match {
-      case IdArgument(id)         => env.bindings.get(id).getOrElse(Transform.constant(Text(id.name)))
-      case StringArgument(value)  => Transform.constant(Text(value))
-      case IntArgument(value)     => Transform.constant(Text(value.toString))
-      case DoubleArgument(value)  => Transform.constant(Text(value.toString))
-      case BooleanArgument(value) => Transform.constant(Text(value.toString))
+      case IdArgument(name, value)      => env.bindings.get(value).getOrElse(Transform.constant(Range.Empty))
+      case StringArgument(name, value)  => Transform.constant(Text(value))
+      case IntArgument(name, value)     => Transform.constant(Text(value.toString))
+      case DoubleArgument(name, value)  => Transform.constant(Text(value.toString))
+      case BooleanArgument(name, value) => Transform.constant(Text(value.toString))
+      case UnitArgument(name)           => Transform.constant(Range.Empty)
     }
   }
 }

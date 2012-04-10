@@ -64,20 +64,15 @@ case class Parser(
   private def optWs = "[ \t]*".r
 
   def arg: Parser[Argument[_]] =
-    (double  ^^ doubleArgument)  |
-    (int     ^^ intArgument)     |
-    (boolean ^^ booleanArgument) |
-    (string  ^^ stringArgument)  |
-    (id      ^^ idArgument)
-
-  private def idArgument(value: Id): Argument[_] = IdArgument(value)
-  private def stringArgument(value: String): Argument[_] = StringArgument(value)
-  private def intArgument(value: Int): Argument[_] = IntArgument(value)
-  private def doubleArgument(value: Double): Argument[_] = DoubleArgument(value)
-  private def booleanArgument(value: Boolean): Argument[_] = BooleanArgument(value)
+    ( (id ~ (optWs ~ "=" ~ optWs) ~ double ) ^^ { case name ~ _ ~ value => DoubleArgument(name, value)  : Argument[_] } ) |
+    ( (id ~ (optWs ~ "=" ~ optWs) ~ int    ) ^^ { case name ~ _ ~ value => IntArgument(name, value)     : Argument[_] } ) |
+    ( (id ~ (optWs ~ "=" ~ optWs) ~ boolean) ^^ { case name ~ _ ~ value => BooleanArgument(name, value) : Argument[_] } ) |
+    ( (id ~ (optWs ~ "=" ~ optWs) ~ string ) ^^ { case name ~ _ ~ value => StringArgument(name, value)  : Argument[_] } ) |
+    ( (id ~ (optWs ~ "=" ~ optWs) ~ id     ) ^^ { case name ~ _ ~ value => IdArgument(name, value)      : Argument[_] } ) |
+    ( (id                                  ) ^^ { case name         => UnitArgument(name)           : Argument[_] } )
 
   def id: Parser[Id] =
-    "[a-zA-Z0-9_$-]+".r ^^ Id
+    "[a-zA-Z_$][a-zA-Z0-9_$-]*".r ^^ Id
 
   def string: Parser[String] =
     (""" "([^\\"]|(\\\\)|(\\"))*" """.trim.r ^^ (str => str.substring(1, str.length - 1).replace("\\\\", "\\").replace("\\\"", "\"")))

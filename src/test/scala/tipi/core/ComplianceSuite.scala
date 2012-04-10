@@ -24,7 +24,7 @@ class ComplianceSuite extends FunSuite {
     (src, des) <- tipiTests
   } {
     test(src + " => " + des) {
-      assert(tipi(resourceSource(src).mkString) === des)
+      assert(tipi(resourceSource(src).mkString) === resourceSource(des).mkString)
     }
   }
 }

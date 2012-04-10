@@ -2,45 +2,29 @@ package tipi.core
 
 import com.weiglewilczek.slf4s.Logging
 
-object Template {
-  object IdArguments {
-    def unapply(args: List[Argument[_]]): Option[List[Id]] = {
-      args match {
-        case Nil  => None
-        case args if args.forall(_.isInstanceOf[IdArgument]) =>
-          Some(args.collect{ case IdArgument(id) => id })
-      }
-    }
-  }
-}
-
 case class Template(val defn: Block, val globalEnv: Env) extends Transform with TransformImplicits with Logging{
   import Template._
 
-  def defnArgs: List[Id] = {
-    defn.args match {
-      case IdArguments(ids) => ids
-      case other            => sys.error("Bad template header: " + other)
-    }
-  }
+  lazy val defnName: Id = defn.args.head.name
+  lazy val defnEnv: Env = Env.fromArgs(globalEnv, defn.args.tail)
 
-  lazy val tagName: Id = defnArgs.head
-  lazy val argNames: List[Id] = defnArgs.tail
+  logger.debug(
+    """
+    |Define %s
+    |  %s
+    |  %s
+    """.trim.stripMargin.format(defnName.name, defnEnv, defn)
+  )
 
   def localEnv(callingEnv: Env, doc: Block): Env = {
-    val thisKeywordEnv =
-      Env.empty + (Id("this") -> doc.body)
+    val thisKwEnv = Env.empty + (Id("this") -> doc.body)
 
-    val argsEnv =
-      argNames.zip(doc.args).foldLeft(Env.empty) {
-        case (accum, (name, value)) =>
-          accum + (name -> Transform.argToTransform(value, globalEnv))
-      }
+    val argsEnv = Env.fromArgs(defnEnv, doc.args)
 
     val bindEnv = {
       def loop(env: Env, doc: Doc): Env = {
         doc match {
-          case Block(Id("bind"), IdArgument(name) :: _, body) =>
+          case Block(Id("bind"), UnitArgument(name) :: _, body) =>
             env + (name -> Expand((callingEnv, body))._2)
           case Range(children) =>
             children.foldLeft(env)(loop)
@@ -51,16 +35,16 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
       loop(Env.empty, doc.body)
     }
 
-    val bindKeywordEnv =
+    val bindKwEnv =
       Env.empty + (Id("bind") -> Transform.identity)
 
-    globalEnv ++ thisKeywordEnv ++ argsEnv ++ bindEnv ++ bindKeywordEnv
+    argsEnv ++ bindEnv ++ thisKwEnv ++ bindKwEnv
   }
 
   def isDefinedAt(in: (Env, Doc)) = {
     val (env, doc) = in
     doc match {
-      case Block(name, argValues, _) if name == tagName && argValues.length == argNames.length => true
+      case Block(name, argValues, _) if name == defnName => true
       case _ => false
     }
   }
@@ -72,10 +56,10 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
     logger.debug(
       """
-      |Template %s
+      |Call %s
       |  %s
       |  %s
-      """.trim.stripMargin.format(tagName, localEnv, inDoc)
+      """.trim.stripMargin.format(defnName.name, localEnv, inDoc)
     )
 
     val (_, outDoc) = Expand(localEnv, defn.body)

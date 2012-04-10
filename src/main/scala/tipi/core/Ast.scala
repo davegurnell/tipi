@@ -19,12 +19,20 @@ object Range {
   val Empty = Range(Nil)
 }
 
-trait Argument[T] { val value: T }
-case class IdArgument(val value: Id) extends Argument[Id]
-case class StringArgument(val value: String) extends Argument[String]
-case class IntArgument(val value: Int) extends Argument[Int]
-case class DoubleArgument(val value: Double) extends Argument[Double]
-case class BooleanArgument(val value: Boolean) extends Argument[Boolean]
+trait Argument[T] {
+  val name: Id
+  val value: T
+  override def toString = "%s=%s".format(name.name, value)
+}
+case class IdArgument(val name: Id, val value: Id) extends Argument[Id]
+case class StringArgument(val name: Id, val value: String) extends Argument[String]
+case class IntArgument(val name: Id, val value: Int) extends Argument[Int]
+case class DoubleArgument(val name: Id, val value: Double) extends Argument[Double]
+case class BooleanArgument(val name: Id, val value: Boolean) extends Argument[Boolean]
+case class UnitArgument(val name: Id) extends Argument[Unit] {
+  val value = ()
+  override def toString = name.name
+}
 
 object Argument {
   def unapply[T](arg: Argument[T]): Option[T] = {

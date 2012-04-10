@@ -49,13 +49,13 @@ object Env {
       def apply(in: (Env, Doc)): (Env, Doc) = {
         val (env, doc) = in
         doc match {
-          case Block(_, IdArgument(name) :: value :: Nil, Range.Empty) =>
-            (env + (name -> Transform.argToTransform(value, env)), Range.Empty)
+          case Block(_, args, Range.Empty) =>
+            (Env.fromArgs(env, args), Range.Empty)
 
           // case block @ Block(_, IdArgument(name) :: args, Range.Empty) =>
           //   sys.error("Empty 'def' block")
 
-          case block @ Block(_, IdArgument(name) :: args, _) =>
+          case block @ Block(_, UnitArgument(name) :: _, _) =>
             (env + (name -> Template(block, env)), Range.Empty)
 
           case _ => sys.error("Invalid 'def' block")
@@ -65,4 +65,11 @@ object Env {
       override def toString = "define"
     }
   ))
+
+  def fromArgs(initial: Env, args: List[Argument[_]]): Env = {
+    args.foldLeft(initial) {
+      (accum, arg) =>
+        accum + (arg.name -> Transform.argToTransform(arg, accum))
+    }
+  }
 }

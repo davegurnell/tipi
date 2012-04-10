@@ -9,7 +9,7 @@ class TipiSuite extends FunSuite {
     assert(
       tipi(
         """
-        |{{def x "x1"}}
+        |{{def x="x1"}}
         |{{x}}
         """.trim.stripMargin
       ) === Right(
@@ -25,18 +25,18 @@ class TipiSuite extends FunSuite {
     assert(
       tipi(
         """
-        |{{def x "x1"}}
+        |{{def x="x1"}}
         |{{x}
         """.trim.stripMargin
       ) === Left("[1,1]: `}}' expected but `}' found")
     )
   }
-  
+
   test("invalid def block") {
     assert(
       tipi(
         """
-        |{{def x "x1"}}
+        |{{def x="x1"}}
         |{{x}
         """.trim.stripMargin
       ) === Left("[1,1]: `}}' expected but `}' found")
