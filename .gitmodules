@@ -1,3 +1,3 @@
-[submodule "src/test/resources/tipitests"]
-	path = src/test/resources/tipitests
+[submodule "src/test/resources/compliance"]
+	path = src/test/resources/compliance
 	url = git@github.com:hiddenmemory/TipiTests
