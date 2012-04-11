@@ -2,3 +2,5 @@
 
 target
 project/project
+
+src/test/resources/compliance.index

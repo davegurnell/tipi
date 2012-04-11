@@ -39,7 +39,7 @@ class TemplateSuite extends FunSuite {
   val bindTemplate = Template(
     parse(
       """
-      |{{# def page title author }}
+      |{{# def page title author body }}
       |<html>
       |  <head>
       |    <title>{{ title }}</title>
@@ -76,25 +76,26 @@ class TemplateSuite extends FunSuite {
     ).get
   )
 
-  test("Template.argNames") {
+  test("Template.defnEnv") {
     assert(argsTemplate.defnEnv === Env.basic ++ Env(Map(
-      Id("title") -> Transform.constant(Text("Default title")),
-      Id("author") -> Transform.constant(Text("Default author"))
+      Id("title") -> Transform.Constant(Text("Default title")),
+      Id("author") -> Transform.Constant(Text("Default author"))
     )))
     assert(bindTemplate.defnEnv === Env.basic ++ Env(Map(
-      Id("title") -> Transform.constant(Range.Empty),
-      Id("author") -> Transform.constant(Range.Empty)
+      Id("title") -> Transform.Constant(Range.Empty),
+      Id("author") -> Transform.Constant(Range.Empty),
+      Id("body") -> Transform.Constant(Range.Empty)
     )))
   }
 
   test("Template.isDefinedAt - args") {
     assert( argsTemplate.isDefinedAt(argsIn))
-    assert(!argsTemplate.isDefinedAt(bindIn))
+    assert( argsTemplate.isDefinedAt(bindIn))
     assert(!argsTemplate.isDefinedAt(wrongNameIn))
   }
 
   test("Template.isDefinedAt - bind") {
-    assert(!bindTemplate.isDefinedAt(argsIn))
+    assert( bindTemplate.isDefinedAt(argsIn))
     assert( bindTemplate.isDefinedAt(bindIn))
     assert(!bindTemplate.isDefinedAt(wrongNameIn))
   }

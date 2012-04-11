@@ -17,8 +17,12 @@ class ParserSuite extends FunSuite {
   test("id") {
     import p1._
     assert(runRule(id, "abc") === Some(Id("abc")))
+    assert(runRule(id, "abc") === runRule(id, "ABC"))
     assert(runRule(id, "\"abc\"") === None)
-    assert(runRule(id, "a.b.c") === None)
+    assert(runRule(id, "a.b.c") === Some(Id("a.b.c")))
+    assert(runRule(id, "//") === Some(Id("//")))
+    assert(runRule(id, "a1") === Some(Id("a1")))
+    assert(runRule(id, "1a") === None)
   }
 
   test("string") {
@@ -93,30 +97,47 @@ class ParserSuite extends FunSuite {
     )))
   }
 
-  test("tag - {{ }}") {
+  test("simpleTag - {{ }}") {
     import p1._
-    assert(runRule(tag, "{{a}}") === Some(SimpleTag(Id("a"), Nil)))
-    assert(runRule(tag, "{{ a b=1 }}") === Some(SimpleTag(Id("a"), List(IntArgument(Id("b"),1)))))
-    assert(runRule(tag, "{{ a 1 }}") === None)
-    assert(runRule(tag, "{{#a}}") === Some(OpenTag(Id("a"), Nil)))
-    assert(runRule(tag, "{{# a b=1 }}") === Some(OpenTag(Id("a"), List(IntArgument(Id("b"), 1)))))
-    assert(runRule(tag, "{{# a 1 }}") === None)
-    assert(runRule(tag, "{{/a}}") === Some(CloseTag(Id("a"))))
-    assert(runRule(tag, "{{/ a b=1 }}") === None)
-    assert(runRule(tag, "[:a:]") === None)
+    assert(runRule(simpleTag, "{{a}}") === Some(SimpleTag(Id("a"), Nil)))
+    assert(runRule(simpleTag, "{{ a b=1 }}") === Some(SimpleTag(Id("a"), List(IntArgument(Id("b"),1)))))
+    assert(runRule(simpleTag, "{{ a 1 }}") === None)
+    assert(runRule(simpleTag, "[:a:]") === None)
   }
 
-  test("tag - [: :]") {
+  test("openTag - {{ }}") {
+    import p1._
+    assert(runRule(openTag, "{{#a}}") === Some(OpenTag(Id("a"), Nil)))
+    assert(runRule(openTag, "{{# a b=1 }}") === Some(OpenTag(Id("a"), List(IntArgument(Id("b"), 1)))))
+    assert(runRule(openTag, "{{# a 1 }}") === None)
+  }
+
+  test("closeTag - {{ }}") {
+    import p1._
+    assert(runRule(closeTag, "{{/a}}") === Some(CloseTag(Id("a"))))
+    assert(runRule(closeTag, "{{/ abc }}") === Some(CloseTag(Id("abc"))))
+    assert(runRule(closeTag, "{{/ a b=1 }}") === Some(CloseTag(Id("a"))))
+  }
+
+  test("simpleTag - [: :]") {
     import p2._
-    assert(runRule(tag, "[:a:]") === Some(SimpleTag(Id("a"), Nil)))
-    assert(runRule(tag, "[: a b=1 :]") === Some(SimpleTag(Id("a"), List(IntArgument(Id("b"), 1)))))
-    assert(runRule(tag, "[: a 1 :]") === None)
-    assert(runRule(tag, "[:#a:]") === Some(OpenTag(Id("a"), Nil)))
-    assert(runRule(tag, "[:# a b=1 :]") === Some(OpenTag(Id("a"), List(IntArgument(Id("b"), 1)))))
-    assert(runRule(tag, "[:# a 1 :]") === None)
-    assert(runRule(tag, "[:/a:]") === Some(CloseTag(Id("a"))))
-    assert(runRule(tag, "[:/ a 1 :]") === None)
-    assert(runRule(tag, "{{a}}") === None)
+    assert(runRule(simpleTag, "[:a:]") === Some(SimpleTag(Id("a"), Nil)))
+    assert(runRule(simpleTag, "[: a b=1 :]") === Some(SimpleTag(Id("a"), List(IntArgument(Id("b"), 1)))))
+    assert(runRule(simpleTag, "[: a 1 :]") === None)
+    assert(runRule(simpleTag, "{{a}}") === None)
+  }
+
+  test("openTag - [: :]") {
+    import p2._
+    assert(runRule(openTag, "[:#a:]") === Some(OpenTag(Id("a"), Nil)))
+    assert(runRule(openTag, "[:# a b=1 :]") === Some(OpenTag(Id("a"), List(IntArgument(Id("b"), 1)))))
+    assert(runRule(openTag, "[:# a 1 :]") === None)
+  }
+
+  test("closeTag - [: :]") {
+    import p2._
+    assert(runRule(closeTag, "[:/a:]") === Some(CloseTag(Id("a"))))
+    assert(runRule(closeTag, "[:/ a 1 :]") === None)
   }
 
   test("text - {{ }}") {

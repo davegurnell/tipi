@@ -4,14 +4,10 @@ import util.parsing.input.Positional
 
 trait Doc extends Positional
 case class Block(val name: Id, val args: List[Argument[_]], val body: Range = Range.Empty) extends Doc {
-  override def toString = {
-    "Block(%s,Args(%s),%s)".format(name.name, args.mkString(", "), body)
-  }
+  override def toString = "Block(%s,Args(%s),%s)".format(name.name, args.mkString(", "), body)
 }
 case class Range(val children: List[Doc]) extends Doc {
-  override def toString = {
-    "Range(%s)".format(children.mkString(", "))
-  }
+  override def toString = "Range(%s)".format(children.mkString(", "))
 }
 case class Text(val value: String) extends Doc
 
@@ -19,7 +15,7 @@ object Range {
   val Empty = Range(Nil)
 }
 
-trait Argument[T] {
+trait Argument[T] extends Positional {
   val name: Id
   val value: T
   override def toString = "%s=%s".format(name.name, value)
@@ -40,7 +36,7 @@ object Argument {
   }
 }
 
-trait Tag { val name: Id }
+trait Tag extends Positional { val name: Id }
 case class SimpleTag(val name: Id, val args: List[Argument[_]]) extends Tag
 case class OpenTag(val name: Id, val args: List[Argument[_]]) extends Tag
 case class CloseTag(val name: Id) extends Tag

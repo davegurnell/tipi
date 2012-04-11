@@ -32,28 +32,34 @@ case class Parser(
   def block: Parser[Doc] =
     positioned(
       text |
-      ((openTag ~ rep(block) ~ closeTag) ^? {
-        case OpenTag(openName, args) ~ body ~ CloseTag(closeName) if openName == closeName =>
-          Block(openName, args, Range(body))
-      }) |
       (simpleTag ^^ {
         case SimpleTag(name, args) =>
           Block(name, args, Range.Empty)
+      }) |
+      ((openTag ~ rep(doc) ~ closeTag) ^? {
+        case OpenTag(openName, args) ~ body ~ CloseTag(closeName) if openName == closeName =>
+          Block(openName, args, Range(body))
       })
     )
 
   def text: Parser[Text] =
     rep1(not(simpleTagStart) ~! success(()) ~> "(?s).".r) ^^ { strs => Text(strs.mkString) }
 
+  def tag: Parser[Tag] =
+    positioned(
+      openTag  |
+      closeTag |
+      simpleTag
+    )
+
   def openTag: Parser[OpenTag] =
     (((openBlockStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ openBlockEnd)) ^^ { case name ~ args => OpenTag(name, args.getOrElse(Nil)) })
 
   def closeTag: Parser[CloseTag] =
-    ((closeBlockStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ closeBlockEnd)) ^^ { case name ~ args => CloseTag(name) }
+    (closeBlockStart ~! optWs ~ id ~ optWs ~ closeBlockEnd) ^^ { case _ ~ _ ~ name ~ _ ~ _ => CloseTag(name) }
 
   def simpleTag: Parser[SimpleTag] =
-    ((simpleTagStart      ~> safeId ~ opt(ws ~> argList) <~ (optWs ~ simpleTagEnd)) ^^ { case name ~ args => SimpleTag(name, args.getOrElse(Nil)) }) |
-    ((simpleTagStart ~ ws ~> id     ~ opt(ws ~> argList) <~ (optWs ~ simpleTagEnd)) ^^ { case name ~ args => SimpleTag(name, args.getOrElse(Nil)) })
+    (((simpleTagStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ simpleTagEnd)) ^^ { case name ~ args => SimpleTag(name, args.getOrElse(Nil)) })
 
   def argList: Parser[List[Argument[_]]] =
     repsep(arg, ws)
@@ -70,10 +76,7 @@ case class Parser(
     ( ( id                                  ) ^^ { case name         => UnitArgument(name)           : Argument[_] } )
 
   def id: Parser[Id] =
-    "[a-zA-Z_$./\\\\][a-zA-Z0-9_$.-/\\\\]*".r ^^ (str => Id(str.toLowerCase))
-
-  def safeId: Parser[Id] =
-    "[a-zA-Z_$][a-zA-Z0-9_$.-/\\\\]*".r ^^ (str => Id(str.toLowerCase))
+    "[a-zA-Z_$\\/.][a-zA-Z0-9_$\\/.-]*".r ^^ Id
 
   def string: Parser[String] =
     (""" "([^\\"]|(\\\\)|(\\"))*" """.trim.r ^^ (str => str.substring(1, str.length - 1).replace("\\\\", "\\").replace("\\\"", "\"")))

@@ -6,6 +6,7 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
   import Template._
 
   lazy val defnName: Id = defn.args.head.name
+  lazy val defnArgNames = defn.args.tail.map(_.name)
   lazy val defnEnv: Env = Env.fromArgs(globalEnv, defn.args.tail)
 
   logger.debug(
@@ -19,11 +20,13 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
   def localEnv(callingEnv: Env, doc: Block): Env = {
     val thisKwEnv = Env.empty + (Id("this") -> doc.body)
 
-    val argsEnv = Env.fromArgs(defnEnv, doc.args)
+    val argsEnv = Env.fromArgs(callingEnv, doc.args).filterKeys(defnArgNames.contains _)
 
     val bindEnv = {
       def loop(env: Env, doc: Doc): Env = {
         doc match {
+          case Block(Id("bind"), args, Range.Empty) =>
+            env ++ Env.fromArgs(callingEnv, args).filterKeys(defnArgNames.contains _)
           case Block(Id("bind"), UnitArgument(name) :: _, body) =>
             env + (name -> Expand((callingEnv, body))._2)
           case Range(children) =>
@@ -32,13 +35,13 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
         }
       }
 
-      loop(Env.empty, doc.body)
+      loop(Env.empty, doc.body).filterKeys(defnArgNames.contains _)
     }
 
     val bindKwEnv =
-      Env.empty + (Id("bind") -> Transform.identity)
+      Env.empty + (Id("bind") -> Transform.Identity)
 
-    argsEnv ++ bindEnv ++ thisKwEnv ++ bindKwEnv
+    defnEnv ++ argsEnv ++ bindEnv ++ thisKwEnv ++ bindKwEnv
   }
 
   def isDefinedAt(in: (Env, Doc)) = {
@@ -56,13 +59,21 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
     logger.debug(
       """
-      |Call %s
+      |>> Call %s
       |  %s
       |  %s
       """.trim.stripMargin.format(defnName.name, localEnv, inDoc)
     )
 
     val (_, outDoc) = Expand(localEnv, defn.body)
+
+    logger.debug(
+      """
+      |<< Call %s
+      |  %s
+      """.trim.stripMargin.format(defnName.name, outDoc)
+    )
+
     (callingEnv, outDoc)
   }
 }

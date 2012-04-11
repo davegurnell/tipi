@@ -2,7 +2,7 @@ package tipi.core
 
 case class Env(val bindings: Map[Id, Transform]) {
   def get(id: Id): Transform = {
-    bindings.getOrElse(id, Transform.empty)
+    bindings.getOrElse(id, Transform.Empty)
   }
 
   def + (binding: (Id, Transform)): Env = {
@@ -23,6 +23,10 @@ case class Env(val bindings: Map[Id, Transform]) {
 
   def - (id: Id): Env = {
     Env(this.bindings - id)
+  }
+
+  def filterKeys(test: Id => Boolean): Env = {
+    Env(bindings.filterKeys(test))
   }
 
   override def toString = {

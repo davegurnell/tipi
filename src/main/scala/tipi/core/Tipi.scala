@@ -19,17 +19,17 @@ case class Tipi(
   val expand = Expand
   val render = Render
 
-  def apply(input: String): Either[String,String] = {
-    apply(new CharSequenceReader(input))
+  def apply(input: io.Source): Either[String,String] = {
+    apply(input.mkString)
   }
 
-  def apply(input: Reader[Char]): Either[String,String] = {
-    parse(input) match {
+  def apply(inputString: String): Either[String,String] = {
+    parse(new CharSequenceReader(inputString)) match {
       case parse.Success(doc, _) =>
         Right(render(expand((globalEnv, doc))))
 
       case err: parse.NoSuccess =>
-        Left("[%s,%s]: %s".format(input.pos.line, input.pos.column, err.msg))
+        Left(err.toString)
     }
   }
 }

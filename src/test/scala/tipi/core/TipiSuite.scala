@@ -28,7 +28,10 @@ class TipiSuite extends FunSuite {
         |{{def x="x1"}}
         |{{x}
         """.trim.stripMargin
-      ) === Left("[1,1]: `}}' expected but `}' found")
+      ) === Left("""[2.4] failure: `}}' expected but `}' found
+
+{{x}
+   ^""")
     )
   }
 
@@ -39,7 +42,10 @@ class TipiSuite extends FunSuite {
         |{{def x="x1"}}
         |{{x}
         """.trim.stripMargin
-      ) === Left("[1,1]: `}}' expected but `}' found")
+      ) === Left("""[2.4] failure: `}}' expected but `}' found
+
+{{x}
+   ^""")
     )
   }
 }
