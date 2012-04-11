@@ -6,6 +6,8 @@ Copyright 2012 [Dave Gurnell] of [Untyped] and [Chris Ross] of [hiddenMemory].
 
 **Tipi is currently in early alpha. Everything may be subject to change.**
 
+**The syntax in this README is out of date. For more up-to-date examples, check the Tipi [compliance tests].**
+
 # Overview
 
 Tipi's syntax is based on [Mustache]. However, its engine is a little more powerful.
@@ -305,3 +307,4 @@ POSSIBILITY OF SUCH DAMAGE.
 [Untyped]: http://untyped.com
 [hiddenMemory]: http://hiddenmemory.co.uk
 [Mustache]: http://mustache.github.com
+[compliance tests]: https://github.com/hiddenmemory/TipiTests
