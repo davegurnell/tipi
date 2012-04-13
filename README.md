@@ -207,25 +207,25 @@ The net effect of this is that you can invoke a template from anywhere in your c
 
 Tipi allows you to pass one template as an argument to another. For example, given the following definitions:
 
-  {{# def simpleListItem value }}
-    <li>{{ value }}</li>
-  {{/ def }}
+    {{# def simpleListItem value }}
+      <li>{{ value }}</li>
+    {{/ def }}
 
-  {{# def awesomeListItem value }}
-    <li>{{ value }} is awesome!</li>
-  {{/ def }}
-
-  {{# def list item }}
-    <ul>
-      {{ item value="Chris" }}
-      {{ item value="Dave" }}
-      {{ item value="Tipi" }}
-    </ul>
-  {{/ def }}
+    {{# def awesomeListItem value }}
+      <li>{{ value }} is awesome!</li>
+    {{/ def }}
+  
+    {{# def list item }}
+      <ul>
+        {{ item value="Chris" }}
+        {{ item value="Dave" }}
+        {{ item value="Tipi" }}
+      </ul>
+    {{/ def }}
 
 The following code:
 
-  {{ list item=simpleListItem }}
+    {{ list item=simpleListItem }}
 
 would evaluate to the rather bland:
 
