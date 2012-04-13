@@ -6,8 +6,6 @@ Copyright 2012 [Dave Gurnell] of [Untyped] and [Chris Ross] of [hiddenMemory].
 
 **Tipi is currently in early alpha. Everything may be subject to change.**
 
-**The syntax in this README is out of date. For more up-to-date examples, check the Tipi [compliance tests].**
-
 # Overview
 
 Tipi's syntax is based on [Mustache]. However, its engine is a little more powerful.
@@ -25,10 +23,10 @@ Here's an example:
     <p>Notable Internet felines:</p>
 
     <ul>
-    {{ cat "Long Cat"     "being long" }}
-    {{ cat "Keyboard Cat" "playing a fine tune" }}
-    {{ cat "Nyan Cat"     "singing, being half Pop Tart" }}
-    {{ cat "Nonono Cat"   "negativity" }}
+    {{ cat name="Long Cat"     knownFor="being long" }}
+    {{ cat name="Keyboard Cat" knownFor="playing a fine tune" }}
+    {{ cat name="Nyan Cat"     knownFor="singing, being half Pop Tart" }}
+    {{ cat name="Nonono Cat"   knownFor="negativity" }}
     </ul>
 
 This file uses a special tag, `def`, to define a template called `cat`. it then invokes `cat` four times to produce the bullet points in the list. The output is as follows:
@@ -81,17 +79,23 @@ Opening and singleton tags optionally take a list of arguments. Closing tags may
       {{# hobbies }}Music, running{{/ hobbies }}
     {{/ person }}
 
+Note that Tipi is case-insensitive - all of the following tags are identical:
+
+    {{ foo }}
+    {{ Foo }}
+    {{ FOO }}
+
 ## Defining templates
 
 By default, Tipi recognises only three built-in templates: `def`, `bind`, and `this`.
 
 `def` is used to define other templates. You can define simple templates in argument style:
 
-    {{ def food "Lasagne" }}
+    {{ def food="Lasagne" drink="Beer" }}
 
 or more complex templates in block style:
 
-    {{# def person name url }}
+    {{# def person name="Dave" url="http://boxandarrow.com" }}
       {{ name }} has a web site at {{ url }}
     {{/ def }}
 
@@ -101,9 +105,19 @@ The two forms are semantically similar. Think of them as function definitions in
       return "Lasagne"
     }
 
+    var drink = function() {
+      return "Water"
+    }
+
     var person = function(name, url) {
       return name + " has a web site at " + url;
     }
+
+If you don't wish to provide a default value for the argument you can leave the value out. If the argument is not provided when the template is invoked, it will evaluate to an empty string.
+
+    {{# def oneLiner spoon }}
+      There is no {{ spoon }}.
+    {{/ def }}
 
 ## Invoking templates
 
@@ -111,7 +125,7 @@ Once you have defined a template using `def`, you can *invoke* it by writing its
 
     {{ food }} // ==> "Lasagne"
 
-    {{ person "Dave" "boxandarrow.com" }} // ==> "Dave has a web site at boxandarrow.com"
+    {{ person name="Dave" url="boxandarrow.com" }} // ==> "Dave has a web site at boxandarrow.com"
 
 ## Passing blocks using `this`
 
@@ -137,7 +151,7 @@ Tags in the argument are expanded *before* it is passed to the template. This ma
 
 You can pass multiple named blocks as argument using the `bind` built-in:
 
-    {{# def page }}
+    {{# def page sidebar article }}
       <p class="sidebar">{{ sidebar }}</p>
       <p class="article">{{ article }}</p>
     {{/ def }}
@@ -151,7 +165,7 @@ You can pass multiple named blocks as argument using the `bind` built-in:
       {{/ bind }}
     {{/ center }}
 
-This is similar to named arguments in Scala function calls. Note, however, that the arguments are not declared in the opening tag of the template.
+This is similar to named arguments in Scala function calls. Note that, unlike `this`, the arguments must be declared in the opening tag of the template.
 
 As with `this`-style arguments, `bind` blocks are expanded before they are passed to the template. For example, the following templates and function call pseudo-code are semantically similar:
 
@@ -166,6 +180,72 @@ As with `this`-style arguments, `bind` blocks are expanded before they are passe
     )
 
 While it is possible to mix normal, `this` and `bind` arguments, we recommend you stick to one kind of argument for each template you write. Otherwise things can become confusing.
+
+## Static binding
+
+Tipi is a statically bound, lexically scoped language. This means that when you use a variable name like `foo`, you are always referring to the most recently defined version of `foo`. For example, the following code (line numbers provided for clarity):
+
+    1 | {{ def x="x" }}
+    2 | 
+    3 | {{# def foo y }}
+    4 |   x is '{{ x }}', y is '{{ y }}', z is '{{ z }}'
+    5 | {{/ def }}
+    6 | 
+    7 | {{ def x="foo" y="bar" z="baz" }}
+    8 | 
+    9 | {{ foo y="argument" }}
+
+would evaluate to:
+
+    x is 'x', y is 'argument', z is ''
+
+The definitions on line 7 do not affect the `x`, `y` and `z` on line 4 because they appear below the template in the file. `x` on line 4 takes the value defined on line 1, `y` is bound to the template argument, and `z` is bound to the empty string because it is undefined.
+
+The net effect of this is that you can invoke a template from anywhere in your code, and you will only ever affect the values of the template arguments. Simple and easy to maintain.
+
+## Templates as template parameters
+
+Tipi allows you to pass one template as an argument to another. For example, given the following definitions:
+
+  {{# def simpleListItem value }}
+    <li>{{ value }}</li>
+  {{/ def }}
+
+  {{# def awesomeListItem value }}
+    <li>{{ value }} is awesome!</li>
+  {{/ def }}
+
+  {{# def list item }}
+    <ul>
+      {{ item value="Chris" }}
+      {{ item value="Dave" }}
+      {{ item value="Tipi" }}
+    </ul>
+  {{/ def }}
+
+The following code:
+
+  {{ list item=simpleListItem }}
+
+would evaluate to the rather bland:
+
+    <ul>
+      <li>Chris</li>
+      <li>Dave</li>
+      <li>Tipi</li>
+    </ul>
+
+while the following code:
+
+  {{ list item=simpleListItem }}
+
+would evaluate to the infinitely more satisfying:
+
+    <ul>
+      <li>Chris is awesome!</li>
+      <li>Dave is awesome!</li>
+      <li>Tipi is awesome!</li>
+    </ul>
 
 # Running Tipi from Scala
 
@@ -239,45 +319,26 @@ After expansion, Tipi *renders* the final DOM tree by removing any remaining tag
 
 # To do
 
-Tipi is a work in progress. These are some ideas for imminent changes:
+Tipi is a work in progress:
 
-## Simplify argument passing
+ - Simplify initialization of the environment from Scala
 
-Unify the three types of argument. People expect tags to be like HTML, so passing *all* arguments by name makes more sense:
+   We need pimps for `Ids` and `Transformers` from things like functions, partial functions, and common data types.
 
- - Template arguments should be name/value pairs, like HTML attributes.
+ - Import Scala environments from Tipi code (idea for [sbt-tipi]). For example:
+   
+        {{ import class="com.untyped.HandyUtilities" }}
 
-       {{# def page title="Default title" }}
-         // ...
-       {{/ def }}
-
-       {{ page title="Overridden title" }}
-
- - Omitting a default value is like setting the default value to "".
-
- - Both regular and `bind` arguments have to be declared in the template header, allowing you to choose the type of argument:
-
-       {{# def page title="Default title" }}
-         // ...
-       {{/ def }}
-
-       {{ page }}
-         {{# bind title }}
-           Overridden title
-         {{/ bind }}
-
- - If `bind` arguments are passed to a template, and `this` is used in the template, the `bind`s are removed from the `this` content before it is used. May to lazily evaluate `bind` and `this` to prevent the template doing too much work.
-
-## Simplify initialization of the environment from Scala
-
-We need pimps for `Ids` and `Transformers` from things like functions, partial functions, and common data types.
+ - Prefix imported environments to allow basic namespacing (idea for [sbt-tipi]). For example:
+ 
+        {{ import class="com.untyped.HandyUtilities" prefix="util:" }}
 
 # Licence
 
 Copyright 2011-12 [Dave Gurnell] and [hiddenMemory]
 
 All rights reserved.
- 
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
@@ -302,9 +363,11 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
+[Objective-C]: http://github.com/hiddenmemory/Tipi
 [Dave Gurnell]: http://boxandarrow.com
 [Chris Ross]: http://darkrock.co.uk
 [Untyped]: http://untyped.com
 [hiddenMemory]: http://hiddenmemory.co.uk
 [Mustache]: http://mustache.github.com
 [compliance tests]: https://github.com/hiddenmemory/TipiTests
+[sbt-tipi]: https://github.com/untyped/sbt-plugins
