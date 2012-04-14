@@ -34,11 +34,11 @@ case class Parser(
       text |
       ((openTag ~ rep(block) ~ closeTag) ^? {
         case OpenTag(openName, args) ~ body ~ CloseTag(closeName) if openName == closeName =>
-          Block(openName, args, Range(body))
+          Block(openName, Arguments(args), Range(body))
       }) |
       (simpleTag ^^ {
         case SimpleTag(name, args) =>
-          Block(name, args, Range.Empty)
+          Block(name, Arguments(args), Range.Empty)
       })
     )
 
@@ -49,11 +49,10 @@ case class Parser(
     (((openBlockStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ openBlockEnd)) ^^ { case name ~ args => OpenTag(name, args.getOrElse(Nil)) })
 
   def closeTag: Parser[CloseTag] =
-    ((closeBlockStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ closeBlockEnd)) ^^ { case name ~ args => CloseTag(name) }
+    (((closeBlockStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ closeBlockEnd)) ^^ { case name ~ args => CloseTag(name) })
 
   def simpleTag: Parser[SimpleTag] =
-    ((simpleTagStart      ~> safeId ~ opt(ws ~> argList) <~ (optWs ~ simpleTagEnd)) ^^ { case name ~ args => SimpleTag(name, args.getOrElse(Nil)) }) |
-    ((simpleTagStart ~ ws ~> id     ~ opt(ws ~> argList) <~ (optWs ~ simpleTagEnd)) ^^ { case name ~ args => SimpleTag(name, args.getOrElse(Nil)) })
+    (((simpleTagStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ simpleTagEnd)) ^^ { case name ~ args => SimpleTag(name, args.getOrElse(Nil)) })
 
   def argList: Parser[List[Argument[_]]] =
     repsep(arg, ws)
@@ -62,18 +61,15 @@ case class Parser(
   private def optWs = "[ \t\r\n]*".r
 
   def arg: Parser[Argument[_]] =
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ double ) ^^ { case name ~ value => DoubleArgument(name, value)  : Argument[_] } ) |
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ int    ) ^^ { case name ~ value => IntArgument(name, value)     : Argument[_] } ) |
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ double ) ^^ { case name ~ value =>  DoubleArgument(name, value) : Argument[_] } ) |
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ int    ) ^^ { case name ~ value =>     IntArgument(name, value) : Argument[_] } ) |
     ( ((id <~ optWs ~ "=" ~ optWs) ~ boolean) ^^ { case name ~ value => BooleanArgument(name, value) : Argument[_] } ) |
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ string ) ^^ { case name ~ value => StringArgument(name, value)  : Argument[_] } ) |
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ id     ) ^^ { case name ~ value => IdArgument(name, value)      : Argument[_] } ) |
-    ( ( id                                  ) ^^ { case name         => UnitArgument(name)           : Argument[_] } )
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ string ) ^^ { case name ~ value =>  StringArgument(name, value) : Argument[_] } ) |
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ id     ) ^^ { case name ~ value =>      IdArgument(name, value) : Argument[_] } ) |
+    ( ( id                                  ) ^^ { case name         =>    UnitArgument(name)        : Argument[_] } )
 
   def id: Parser[Id] =
-    "[a-zA-Z_$./\\\\][a-zA-Z0-9_$.-/\\\\]*".r ^^ (str => Id(str.toLowerCase))
-
-  def safeId: Parser[Id] =
-    "[a-zA-Z_$][a-zA-Z0-9_$.-/\\\\]*".r ^^ (str => Id(str.toLowerCase))
+    ("[a-zA-Z$_][0-9a-zA-Z$_.:-]*".r ^^ (str => Id(str.toLowerCase)))
 
   def string: Parser[String] =
     (""" "([^\\"]|(\\\\)|(\\"))*" """.trim.r ^^ (str => str.substring(1, str.length - 1).replace("\\\\", "\\").replace("\\\"", "\"")))

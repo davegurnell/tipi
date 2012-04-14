@@ -3,17 +3,17 @@ package tipi.core
 import util.parsing.input.Positional
 
 trait Doc extends Positional
-case class Block(val name: Id, val args: List[Argument[_]], val body: Range = Range.Empty) extends Doc {
-  override def toString = "Block(%s,Args(%s),%s)".format(name.name, args.mkString(", "), body)
+
+case class Block(val name: Id, val args: Arguments = Arguments.Empty, val body: Range = Range.Empty) extends Doc {
+  override def toString = "Block(%s,Args(%s),%s)".format(name.name, args.toList.mkString(", "), body)
 }
 case class Range(val children: List[Doc]) extends Doc {
   override def toString = "Range(%s)".format(children.mkString(", "))
 }
-case class Text(val value: String) extends Doc
-
 object Range {
   val Empty = Range(Nil)
 }
+case class Text(val value: String) extends Doc
 
 trait Argument[T] extends Positional {
   val name: Id
@@ -34,6 +34,25 @@ object Argument {
   def unapply[T](arg: Argument[T]): Option[T] = {
     Some(arg.value)
   }
+}
+
+case class Arguments(arguments: List[Argument[_]]) {
+  def get[T : Manifest](name: Id): Option[T] = {
+    arguments.find(_.name == name).flatMap {
+      case arg: Argument[_] if ClassManifest.fromClass(arg.value.getClass) >:> manifest[T] => Some(arg.value.asInstanceOf[T])
+      case _ => None
+    }
+  }
+
+  def contains[T : Manifest](name: Id): Boolean = {
+    get[T](name).isDefined
+  }
+
+  def toList = arguments
+}
+
+object Arguments {
+  val Empty = Arguments(Nil)
 }
 
 trait Tag extends Positional { val name: Id }

@@ -1,21 +1,19 @@
 package tipi.core
 
-import com.weiglewilczek.slf4s.Logging
-
-case class Template(val defn: Block, val globalEnv: Env) extends Transform with TransformImplicits with Logging{
+case class Template(val defn: Block, val globalEnv: Env) extends Transform with TransformImplicits {
   import Template._
 
-  lazy val defnName: Id = defn.args.head.name
-  lazy val defnArgNames = defn.args.tail.map(_.name)
-  lazy val defnEnv: Env = Env.fromArgs(globalEnv, defn.args.tail)
+  lazy val defnName: Id = defn.args.toList.head.name
+  lazy val defnArgNames = defn.args.toList.tail.map(_.name)
+  lazy val defnEnv: Env = Env.fromArgs(globalEnv, Arguments(defn.args.toList.tail))
 
-  logger.debug(
-    """
-    |Define %s
-    |  %s
-    |  %s
-    """.trim.stripMargin.format(defnName.name, defnEnv, defn)
-  )
+  // println(
+  //   """
+  //   |Define %s
+  //   |  %s
+  //   |  %s
+  //   """.trim.stripMargin.format(defnName.name, defnEnv, defn)
+  // )
 
   def localEnv(callingEnv: Env, doc: Block): Env = {
     val thisKwEnv = Env.empty + (Id("this") -> doc.body)
@@ -27,10 +25,13 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
         doc match {
           case Block(Id("bind"), args, Range.Empty) =>
             env ++ Env.fromArgs(callingEnv, args).filterKeys(defnArgNames.contains _)
-          case Block(Id("bind"), UnitArgument(name) :: _, body) =>
+
+          case Block(Id("bind"), Arguments(UnitArgument(name) :: _), body) =>
             env + (name -> Expand((callingEnv, body))._2)
+
           case Range(children) =>
             children.foldLeft(env)(loop)
+
           case _ => env
         }
       }
@@ -57,22 +58,22 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
     val localEnv = this.localEnv(callingEnv, inDoc.asInstanceOf[Block])
 
-    logger.debug(
-      """
-      |>> Call %s
-      |  %s
-      |  %s
-      """.trim.stripMargin.format(defnName.name, localEnv, inDoc)
-    )
+    // println(
+    //   """
+    //   |>> Call %s
+    //   |  %s
+    //   |  %s
+    //   """.trim.stripMargin.format(defnName.name, localEnv, inDoc)
+    // )
 
     val (_, outDoc) = Expand(localEnv, defn.body)
 
-    logger.debug(
-      """
-      |<< Call %s
-      |  %s
-      """.trim.stripMargin.format(defnName.name, outDoc)
-    )
+    // println(
+    //   """
+    //   |<< Call %s
+    //   |  %s
+    //   """.trim.stripMargin.format(defnName.name, outDoc)
+    // )
 
     (callingEnv, outDoc)
   }

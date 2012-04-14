@@ -3,7 +3,6 @@ import sbt.Keys._
 
 object Build extends Build {
   lazy val scalatest = "org.scalatest"           %% "scalatest" % "1.7.1"
-  lazy val slf4s     = "com.weiglewilczek.slf4s" %% "slf4s"     % "1.0.7"
 
   val complianceFiles = SettingKey[Seq[(String, String)]]("compliance-files")
   val complianceIndex = SettingKey[File]("compliance-index")
@@ -38,8 +37,7 @@ object Build extends Build {
       scalacOptions += "-deprecation",
       scalacOptions += "-unchecked",
       libraryDependencies ++= Seq(
-        scalatest % "test",
-        slf4s
+        scalatest % "test"
       ),
       publishTo := {
         for {

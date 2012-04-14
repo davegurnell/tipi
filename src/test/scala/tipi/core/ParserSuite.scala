@@ -20,7 +20,7 @@ class ParserSuite extends FunSuite {
     assert(runRule(id, "abc") === runRule(id, "ABC"))
     assert(runRule(id, "\"abc\"") === None)
     assert(runRule(id, "a.b.c") === Some(Id("a.b.c")))
-    assert(runRule(id, "//") === Some(Id("//")))
+    assert(runRule(id, "//") === None)
     assert(runRule(id, "a1") === Some(Id("a1")))
     assert(runRule(id, "1a") === None)
   }
@@ -122,6 +122,7 @@ class ParserSuite extends FunSuite {
   test("simpleTag - [: :]") {
     import p2._
     assert(runRule(simpleTag, "[:a:]") === Some(SimpleTag(Id("a"), Nil)))
+    assert(runRule(simpleTag, "[: a :]") === Some(SimpleTag(Id("a"), Nil)))
     assert(runRule(simpleTag, "[: a b=1 :]") === Some(SimpleTag(Id("a"), List(IntArgument(Id("b"), 1)))))
     assert(runRule(simpleTag, "[: a 1 :]") === None)
     assert(runRule(simpleTag, "{{a}}") === None)
@@ -137,6 +138,7 @@ class ParserSuite extends FunSuite {
   test("closeTag - [: :]") {
     import p2._
     assert(runRule(closeTag, "[:/a:]") === Some(CloseTag(Id("a"))))
+    assert(runRule(closeTag, "[:/ a :]") === Some(CloseTag(Id("a"))))
     assert(runRule(closeTag, "[:/ a 1 :]") === None)
   }
 
@@ -166,31 +168,31 @@ class ParserSuite extends FunSuite {
   test("block - {{ }}") {
     import p1._
     assert(runRule(block, "abc") === Some(Text("abc")))
-    assert(runRule(block, "{{ abc }}") === Some(Block(Id("abc"), Nil)))
+    assert(runRule(block, "{{ abc }}") === Some(Block(Id("abc"))))
     assert(runRule(block, "{{# abc }}") === None)
-    assert(runRule(block, "{{# abc }}{{/ abc }}") === Some(Block(Id("abc"), Nil)))
+    assert(runRule(block, "{{# abc }}{{/ abc }}") === Some(Block(Id("abc"))))
     assert(runRule(block, "{{# abc }}{{/ def }}") === None)
     assert(runRule(block, "{{# abc }}{{ def }}{{/ abc }}") === Some(
       Block(
         Id("abc"),
-        Nil,
-        Range(List(Block(Id("def"), Nil)))
+        Arguments.Empty,
+        Range(List(Block(Id("def"))))
       )
     ))
     assert(runRule(block, "{{# abc }}{{ def }}{{ ghi }}{{/ abc }}") === Some(
       Block(
         Id("abc"),
-        Nil,
+        Arguments.Empty,
         Range(List(
-          Block(Id("def"), Nil),
-          Block(Id("ghi"), Nil)
+          Block(Id("def")),
+          Block(Id("ghi"))
         ))
       )
     ))
     assert(runRule(block, "{{# abc }} x {{/ abc }}") === Some(
       Block(
         Id("abc"),
-        Nil,
+        Arguments.Empty,
         Range(List(
           Text(" x ")
         ))
@@ -208,7 +210,7 @@ class ParserSuite extends FunSuite {
     assert(runRule(block, "[:# abc :] x [:/ abc :]") === Some(
       Block(
         Id("abc"),
-        Nil,
+        Arguments.Empty,
         Range(List(
           Text(" x ")
         ))
@@ -220,16 +222,16 @@ class ParserSuite extends FunSuite {
     import p1._
     assert(runRule(doc, " {{# abc }} x {{ def }} y {{/ abc }} ") === Some(Range(List(
       Text(" "),
-      Block(Id("abc"), Nil, Range(List(
+      Block(Id("abc"), Arguments.Empty, Range(List(
         Text(" x "),
-        Block(Id("def"), Nil),
+        Block(Id("def")),
         Text(" y "))
       )),
       Text(" ")
     ))))
     assert(runRule(doc, " {{# abc }} x [: def :] y {{/ abc }} ") === Some(Range(List(
       Text(" "),
-      Block(Id("abc"), Nil, Range(List(
+      Block(Id("abc"), Arguments.Empty, Range(List(
         Text(" x [: def :] y ")
       ))),
       Text(" ")
@@ -240,7 +242,7 @@ class ParserSuite extends FunSuite {
     import p2._
     assert(runRule(doc, " {{# abc }} x [: def :] y {{/ abc }} ") === Some(Range(List(
       Text(" {{# abc }} x "),
-      Block(Id("def"), Nil),
+      Block(Id("def")),
       Text(" y {{/ abc }} ")
     ))))
   }

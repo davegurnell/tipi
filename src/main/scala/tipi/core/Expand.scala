@@ -1,18 +1,16 @@
 package tipi.core
 
-import com.weiglewilczek.slf4s.Logging
-
-object Expand extends Logging {
+object Expand {
   def apply(in: (Env, Doc)): (Env, Doc) = {
     val (env, doc) = in
 
-    logger.debug(
-      """
-      |Expand
-      |  %s
-      |  %s
-      """.trim.stripMargin.format(env, doc)
-    )
+    // println(
+    //   """
+    //   |Expand
+    //   |  %s
+    //   |  %s
+    //   """.trim.stripMargin.format(env, doc)
+    // )
 
     doc match {
       case doc @ Block(name, _, _) =>

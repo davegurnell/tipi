@@ -1,24 +1,29 @@
 package tipi.core
 
-trait Transform extends PartialFunction[(Env, Doc), (Env, Doc)]
+trait Transform extends Function1[(Env, Doc), (Env, Doc)]
 
 object Transform {
+  case class Full(val func: Function1[(Env, Doc), (Env, Doc)]) extends Transform {
+    def apply(in: (Env, Doc)) = func(in)
+  }
+
+  case class Simple(val func: Function[Doc, Doc]) extends Transform {
+    def apply(in: (Env, Doc)) = {
+      val (env, doc) = in
+      (env, func(doc))
+    }
+  }
+
   case class Constant(doc: Doc) extends Transform {
-    def isDefinedAt(in: (Env, Doc)) = true
     def apply(in: (Env, Doc)) = (in._1, doc)
-    override def toString = "constant(%s)".format(doc)
   }
 
   case object Identity extends Transform {
-    def isDefinedAt(in: (Env, Doc)) = true
-    def apply(in: (Env, Doc)) = in
-    override def toString = "identity"
+    def apply(in: (Env, Doc)) = (in._1, in._2)
   }
 
   case object Empty extends Transform {
-    def isDefinedAt(in: (Env, Doc)) = true
     def apply(in: (Env, Doc)) = (in._1, Range.Empty)
-    override def toString = "empty"
   }
 
   def argToTransform(arg: Argument[_], env: Env): Transform = {
@@ -31,8 +36,4 @@ object Transform {
       case UnitArgument(name)           => Constant(Range.Empty)
     }
   }
-}
-
-trait TransformImplicits {
-  implicit def docToTransform(doc: Doc): Transform = Transform.Constant(doc)
 }

@@ -12,6 +12,6 @@ class RenderSuite extends FunSuite {
   }
 
   test("block") {
-    assert(Render(Block(Id("a"), Nil, Range(List(Text("b"))))) === "b")
+    assert(Render(Block(Id("a"), Arguments.Empty, Range(List(Text("b"))))) === "b")
   }
 }

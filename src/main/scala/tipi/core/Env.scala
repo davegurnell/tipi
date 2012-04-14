@@ -38,7 +38,11 @@ case class Env(val bindings: Map[Id, Transform]) {
 }
 
 object Env {
-  val empty = Env(Map())
+  def apply(bindings: (Id, Transform) *): Env = {
+    Env(Map(bindings : _*))
+  }
+
+  val empty = Env()
 
   val basic = empty ++ Env(Map(
     Id("def") -> new Transform {
@@ -56,10 +60,7 @@ object Env {
           case Block(_, args, Range.Empty) =>
             (Env.fromArgs(env, args), Range.Empty)
 
-          // case block @ Block(_, IdArgument(name) :: args, Range.Empty) =>
-          //   sys.error("Empty 'def' block")
-
-          case block @ Block(_, UnitArgument(name) :: _, _) =>
+          case block @ Block(_, Arguments(UnitArgument(name) :: _), _) =>
             (env + (name -> Template(block, env)), Range.Empty)
 
           case _ => sys.error("Invalid 'def' block")
@@ -70,8 +71,8 @@ object Env {
     }
   ))
 
-  def fromArgs(initial: Env, args: List[Argument[_]]): Env = {
-    args.foldLeft(initial) {
+  def fromArgs(initial: Env, args: Arguments): Env = {
+    args.toList.foldLeft(initial) {
       (accum, arg) =>
         accum + (arg.name -> Transform.argToTransform(arg, accum))
     }

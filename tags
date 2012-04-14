@@ -1,0 +1,1 @@
+Parser	src/main/scala/tipi/core/Parser.scala	/^case class Parser($/

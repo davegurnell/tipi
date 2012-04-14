@@ -186,13 +186,13 @@ While it is possible to mix normal, `this` and `bind` arguments, we recommend yo
 Tipi is a statically bound, lexically scoped language. This means that when you use a variable name like `foo`, you are always referring to the most recently defined version of `foo`. For example, the following code (line numbers provided for clarity):
 
     1 | {{ def x="x" }}
-    2 | 
+    2 |
     3 | {{# def foo y }}
     4 |   x is '{{ x }}', y is '{{ y }}', z is '{{ z }}'
     5 | {{/ def }}
-    6 | 
+    6 |
     7 | {{ def x="foo" y="bar" z="baz" }}
-    8 | 
+    8 |
     9 | {{ foo y="argument" }}
 
 would evaluate to:
@@ -214,7 +214,7 @@ Tipi allows you to pass one template as an argument to another. For example, giv
     {{# def awesomeListItem value }}
       <li>{{ value }} is awesome!</li>
     {{/ def }}
-  
+
     {{# def list item }}
       <ul>
         {{ item value="Chris" }}
@@ -321,16 +321,12 @@ After expansion, Tipi *renders* the final DOM tree by removing any remaining tag
 
 Tipi is a work in progress:
 
- - Simplify initialization of the environment from Scala
-
-   We need pimps for `Ids` and `Transformers` from things like functions, partial functions, and common data types.
-
  - Import Scala environments from Tipi code (idea for [sbt-tipi]). For example:
-   
+
         {{ import class="com.untyped.HandyUtilities" }}
 
  - Prefix imported environments to allow basic namespacing (idea for [sbt-tipi]). For example:
- 
+
         {{ import class="com.untyped.HandyUtilities" prefix="util:" }}
 
 # Licence
