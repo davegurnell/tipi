@@ -25,6 +25,14 @@ case class Env(val bindings: Map[Id, Transform]) {
     Env(this.bindings - id)
   }
 
+  def prefixWith(prefix: Id): Env = {
+    prefixWith(prefix.name)
+  }
+
+  def prefixWith(prefix: String): Env = {
+    Env(bindings.map { case (Id(name), value) => (Id(prefix + name), value) })
+  }
+
   def filterKeys(test: Id => Boolean): Env = {
     Env(bindings.filterKeys(test))
   }
