@@ -3,12 +3,21 @@ package tipi.core
 import scala.util.parsing.combinator._
 import scala.util.parsing.input._
 
+object Parser {
+  trait Tag extends Positional { val name: Id }
+  case class SimpleTag(val name: Id, val args: List[Argument[_]]) extends Tag
+  case class OpenTag(val name: Id, val args: List[Argument[_]]) extends Tag
+  case class CloseTag(val name: Id) extends Tag
+}
+
 case class Parser(
   val simpleTagStart: String = "{{",
   val simpleTagEnd:   String = "}}",
   val blockStart:     String = "#",
   val blockEnd:       String = "/"
 ) extends RegexParsers {
+  import tipi.core.Parser._
+
   override val skipWhitespace = false
 
   def openBlockStart  = simpleTagStart + blockStart

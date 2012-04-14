@@ -4,6 +4,8 @@ import org.scalatest._
 import scala.util.parsing.combinator._
 
 class ParserSuite extends FunSuite {
+  import tipi.core.Parser._
+
   trait ParserTest {
     self: RegexParsers =>
     def runRule[T](rule: Parser[T], input: String): Option[T] = {
