@@ -9,6 +9,7 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
   // println(
   //   """
+  //   |====================
   //   |Define %s
   //   |  %s
   //   |  %s
@@ -16,7 +17,7 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
   // )
 
   def localEnv(callingEnv: Env, doc: Block): Env = {
-    val thisKwEnv = Env.empty + (Id("this") -> doc.body)
+    val thisKwEnv = Env.empty + (Id("this") -> Expand((callingEnv, doc.body))._2)
 
     val argsEnv = Env.fromArgs(callingEnv, doc.args).filterKeys(defnArgNames.contains _)
 
@@ -60,6 +61,7 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
     // println(
     //   """
+    //   |====================
     //   |>> Call %s
     //   |  %s
     //   |  %s
@@ -70,6 +72,7 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
 
     // println(
     //   """
+    //   |--------------------
     //   |<< Call %s
     //   |  %s
     //   """.trim.stripMargin.format(defnName.name, outDoc)

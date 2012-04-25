@@ -1,6 +1,10 @@
 package tipi.core
 
 case class Env(val bindings: Map[Id, Transform]) {
+  def this(bindings: (Id, Transform) *) = {
+    this(Map(bindings : _*))
+  }
+
   def get(id: Id): Transform = {
     bindings.getOrElse(id, Transform.Empty)
   }

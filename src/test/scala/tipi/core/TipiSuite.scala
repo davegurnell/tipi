@@ -48,4 +48,44 @@ class TipiSuite extends FunSuite {
    ^""")
     )
   }
+
+  test("this keyword (adapted from sbt-tipi)") {
+    assert(
+      tipi(
+        """
+        |{{# def import }}
+        |{{ def template="template" }}
+        |File2
+        |{{ template }}
+        |{{/ def }}
+        |
+        |{{# def page title }}
+        |<title>{{ title }}</title>
+        |<content>{{ this }}</content>
+        |{{/ def }}
+        |
+        |{{# page title="Title" }}
+        |{{ import }}
+        |{{/ page }}
+        """.trim.stripMargin
+      ) === Right(
+        """
+        |
+        |
+        |
+        |
+        |
+        |<title>Title</title>
+        |<content>
+        |
+        |
+        |File2
+        |template
+        |
+        |</content>
+        |
+        """.trim.stripMargin
+      )
+    )
+  }
 }

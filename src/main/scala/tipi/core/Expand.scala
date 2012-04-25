@@ -6,6 +6,7 @@ object Expand {
 
     // println(
     //   """
+    //   |====================
     //   |Expand
     //   |  %s
     //   |  %s
@@ -17,17 +18,17 @@ object Expand {
         env.get(name).apply((env, doc))
 
       case Range(children) =>
-        var newEnv = env
+        var accumEnv = env
 
-        val newDoc = Range {
+        val accumDoc = Range {
           children.map { child =>
-            val (childEnv, childDoc) = Expand(newEnv, child)
-            newEnv = childEnv
+            val (childEnv, childDoc) = Expand(accumEnv, child)
+            accumEnv = childEnv
             childDoc
           }
         }
 
-        (newEnv, newDoc)
+        (accumEnv, accumDoc)
 
       case _ : Text =>
         (env, doc)
