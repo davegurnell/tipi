@@ -31,7 +31,7 @@ object Build extends Build {
     base = file("."),
     settings = Project.defaultSettings ++ Seq(
       organization := "com.untyped",
-      version := "0.1-SNAPSHOT",
+      version := "0.1-M1",
       name := "tipi",
       scalaVersion := "2.9.1",
       scalacOptions += "-deprecation",
