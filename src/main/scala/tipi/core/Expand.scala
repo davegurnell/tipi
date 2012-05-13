@@ -15,7 +15,7 @@ object Expand {
 
     doc match {
       case doc @ Block(name, _, _) =>
-        env.get(name).apply((env, doc))
+        env.get(name).getOrElse(Transform.Empty).apply((env, doc))
 
       case Range(children) =>
         var accumEnv = env

@@ -5,52 +5,65 @@ import org.scalatest._
 class ArgumentSuite extends FunSuite with Implicits {
   val args = Arguments(List(
     UnitArgument("unit"),
-    StringArgument("string", "foo"),
-    IntArgument("int", 123)
+    ConstantArgument("const", Text("foo")),
+    VariableArgument("var", "x")
   ))
 
-  test("contains") {
-    assert(args.contains[Any]("unit") === true)
-    assert(args.contains[Unit]("unit") === true)
-    assert(args.contains[String]("unit") === false)
-    assert(args.contains[Int]("unit") === false)
-    assert(args.contains[Any]("string") === true)
-    assert(args.contains[Unit]("string") === false)
-    assert(args.contains[String]("string") === true)
-    assert(args.contains[Int]("string") === false)
-    assert(args.contains[Any]("int") === true)
-    assert(args.contains[Unit]("int") === false)
-    assert(args.contains[String]("int") === false)
-    assert(args.contains[Int]("int") === true)
-    assert(args.contains[Any]("missing") === false)
+  val testEnv = Env.empty + ("x" -> Text("y"))
+
+  test("defined") {
+    assert(args.defined(Env.empty, "unit") === false)
+    assert(args.defined(Env.empty, "const") === true)
+    assert(args.defined(Env.empty, "var") === false)
+    assert(args.defined(testEnv, "var") === true)
+    assert(args.defined(Env.empty, "missing") === false)
   }
 
   test("apply") {
-    assert(args[Unit]("unit") === ())
-    intercept[ArgumentTypeException]{ args[String]("unit") }
-    intercept[ArgumentTypeException]{ args[Int]("unit") }
-    intercept[ArgumentTypeException]{ args[Unit]("string") }
-    assert(args[String]("string") === "foo")
-    intercept[ArgumentTypeException]{ args[Int]("string") }
-    intercept[ArgumentTypeException]{ args[Unit]("int") }
-    intercept[ArgumentTypeException]{ args[String]("int") }
-    assert(args[Int]("int") === 123)
-    intercept[ArgumentNotFoundException]{ args[Any]("missing") }
+    intercept[ArgumentNotFoundException]{ args(Env.empty, "unit") }
+    assert(args(Env.empty, "const") === "foo")
+    intercept[ArgumentNotFoundException]{ args(Env.empty, "var") }
+    intercept[ArgumentNotFoundException]{ args(Env.empty, "missing") }
+
+    intercept[ArgumentNotFoundException]{ args(testEnv, "unit") }
+    assert(args(testEnv, "const") === "foo")
+    assert(args(testEnv, "var") === "y")
+    intercept[ArgumentNotFoundException]{ args(testEnv, "missing") }
   }
 
-  test("get") {
-    assert(args.get[Any]("unit") === Some(()))
-    assert(args.get[Unit]("unit") === Some(()))
-    assert(args.get[String]("unit") === None)
-    assert(args.get[Int]("unit") === None)
-    assert(args.get[Any]("string") === Some("foo"))
-    assert(args.get[Unit]("string") === None)
-    assert(args.get[String]("string") === Some("foo"))
-    assert(args.get[Int]("string") === None)
-    assert(args.get[Any]("int") === Some(123))
-    assert(args.get[Unit]("int") === None)
-    assert(args.get[String]("int") === None)
-    assert(args.get[Int]("int") === Some(123))
-    assert(args.get[Any]("missing") === None)
+  test("transform") {
+    assert(args.transform(Env.empty, "unit") === None)
+    assert(args.transform(Env.empty, "const") === Some(Transform.Constant(Text("foo"))))
+    assert(args.transform(Env.empty, "var") === None)
+    assert(args.transform(Env.empty, "missing") === None)
+
+    assert(args.transform(testEnv, "unit") === None)
+    assert(args.transform(testEnv, "const") === Some(Transform.Constant(Text("foo"))))
+    assert(args.transform(testEnv, "var") === Some(Transform.Constant(Text("y"))))
+    assert(args.transform(testEnv, "missing") === None)
+  }
+
+  test("doc") {
+    assert(args.doc(Env.empty, "unit") === None)
+    assert(args.doc(Env.empty, "const") === Some(Text("foo")))
+    assert(args.doc(Env.empty, "var") === None)
+    assert(args.doc(Env.empty, "missing") === None)
+
+    assert(args.doc(testEnv, "unit") === None)
+    assert(args.doc(testEnv, "const") === Some(Text("foo")))
+    assert(args.doc(testEnv, "var") === Some(Text("y")))
+    assert(args.doc(testEnv, "missing") === None)
+  }
+
+  test("string") {
+    assert(args.string(Env.empty, "unit") === None)
+    assert(args.string(Env.empty, "const") === Some("foo"))
+    assert(args.string(Env.empty, "var") === None)
+    assert(args.string(Env.empty, "missing") === None)
+
+    assert(args.string(testEnv, "unit") === None)
+    assert(args.string(testEnv, "const") === Some("foo"))
+    assert(args.string(testEnv, "var") === Some("y"))
+    assert(args.string(testEnv, "missing") === None)
   }
 }

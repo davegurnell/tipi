@@ -17,18 +17,6 @@ trait TransformImplicits {
   implicit def stringAndFullFunctionToIdAndTransform(pair: (String, Function1[(Env, Doc), (Env, Doc)])): (Id, Transform) = Id(pair._1) -> Transform.Full(pair._2)
 }
 
-trait DocMatchers {
-  object && {
-    def unapply[T](in: T) = Some((in, in))
-  }
-
-  case class Arg(name: Id) {
-    def unapply(args: List[Argument[_]]): Option[Any] = {
-      args.find(_.name == name).map(_.value)
-    }
-  }
-}
-
-trait Implicits extends TransformImplicits with DocMatchers
+trait Implicits extends TransformImplicits
 
 object Implicits extends Implicits

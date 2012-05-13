@@ -5,8 +5,8 @@ import scala.util.parsing.input._
 
 object Parser {
   trait Tag extends Positional { val name: Id }
-  case class SimpleTag(val name: Id, val args: List[Argument[_]]) extends Tag
-  case class OpenTag(val name: Id, val args: List[Argument[_]]) extends Tag
+  case class SimpleTag(val name: Id, val args: List[Argument]) extends Tag
+  case class OpenTag(val name: Id, val args: List[Argument]) extends Tag
   case class CloseTag(val name: Id) extends Tag
 }
 
@@ -63,35 +63,35 @@ case class Parser(
   def simpleTag: Parser[SimpleTag] =
     (((simpleTagStart ~! optWs) ~> id ~ opt(ws ~> argList) <~ (optWs ~ simpleTagEnd)) ^^ { case name ~ args => SimpleTag(name, args.getOrElse(Nil)) })
 
-  def argList: Parser[List[Argument[_]]] =
+  def argList: Parser[List[Argument]] =
     repsep(arg, ws)
 
   private def ws    = "[ \t\r\n]+".r
   private def optWs = "[ \t\r\n]*".r
 
-  def arg: Parser[Argument[_]] =
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ double ) ^^ { case name ~ value =>  DoubleArgument(name, value) : Argument[_] } ) |
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ int    ) ^^ { case name ~ value =>     IntArgument(name, value) : Argument[_] } ) |
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ boolean) ^^ { case name ~ value => BooleanArgument(name, value) : Argument[_] } ) |
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ string ) ^^ { case name ~ value =>  StringArgument(name, value) : Argument[_] } ) |
-    ( ((id <~ optWs ~ "=" ~ optWs) ~ id     ) ^^ { case name ~ value =>      IdArgument(name, value) : Argument[_] } ) |
-    ( ( id                                  ) ^^ { case name         =>    UnitArgument(name)        : Argument[_] } )
+  def arg: Parser[Argument] =
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ double ) ^^ { case name ~ value => ConstantArgument(name, value) } ) |
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ int    ) ^^ { case name ~ value => ConstantArgument(name, value) } ) |
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ boolean) ^^ { case name ~ value => ConstantArgument(name, value) } ) |
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ string ) ^^ { case name ~ value => ConstantArgument(name, value) } ) |
+    ( ((id <~ optWs ~ "=" ~ optWs) ~ id     ) ^^ { case name ~ value => VariableArgument(name, value) } ) |
+    ( ( id                                  ) ^^ { case name         =>     UnitArgument(name)        } )
 
   def id: Parser[Id] =
     ("[a-zA-Z$_][0-9a-zA-Z$_.:-]*".r ^^ (str => Id(str.toLowerCase)))
 
-  def string: Parser[String] =
-    (""" "([^\\"]|(\\\\)|(\\"))*" """.trim.r ^^ (str => str.substring(1, str.length - 1).replace("\\\\", "\\").replace("\\\"", "\"")))
+  def string: Parser[Text] =
+    (""" "([^\\"]|(\\\\)|(\\"))*" """.trim.r ^^ (str => Text(str.substring(1, str.length - 1).replace("\\\\", "\\").replace("\\\"", "\""))))
 
-  def int: Parser[Int] =
-    "-?[0-9]+".r ^^ (str => str.toInt)
+  def int: Parser[Text] =
+    ("-?[0-9]+".r ^^ Text.apply)
 
-  def double: Parser[Double] =
-    ("-?[0-9]+[.]([0-9]*)?".r ^^ (str => str.toDouble)) |
-    ("-?[.][0-9]+".r          ^^ (str => str.toDouble))
+  def double: Parser[Text] =
+    ("-?[0-9]+[.]([0-9]*)?".r ^^ Text.apply) |
+    ("-?[.][0-9]+".r          ^^ Text.apply)
 
-  def boolean: Parser[Boolean] =
-    ("true"  ^^ (str => true)) |
-    ("false" ^^ (str => false))
+  def boolean: Parser[Text] =
+    ("true"  ^^ Text.apply) |
+    ("false" ^^ Text.apply)
 
 }

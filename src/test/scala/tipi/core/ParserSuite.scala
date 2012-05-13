@@ -30,9 +30,9 @@ class ParserSuite extends FunSuite {
   test("string") {
     import p1._
     assert(runRule(string, """ abc """.trim) === None)
-    assert(runRule(string, """ "abc" """.trim) === Some("abc"))
-    assert(runRule(string, """ "a\\b\"c" """.trim) === Some("a\\b\"c"))
-    assert(runRule(string, """ "a\\b\"c" """.trim) === Some("a\\b\"c"))
+    assert(runRule(string, """ "abc" """.trim) === Some(Text("abc")))
+    assert(runRule(string, """ "a\\b\"c" """.trim) === Some(Text("a\\b\"c")))
+    assert(runRule(string, """ "a\\b\"c" """.trim) === Some(Text("a\\b\"c")))
     assert(runRule(string, """ "a\b\"c" """.trim) === None)
     assert(runRule(string, """ "a\\b"c" """.trim) === None)
     assert(runRule(string, """ a.b.c """.trim) === None)
@@ -40,8 +40,8 @@ class ParserSuite extends FunSuite {
 
   test("int") {
     import p1._
-    assert(runRule(int, "123") === Some(123))
-    assert(runRule(int, "-123") === Some(-123))
+    assert(runRule(int, "123") === Some(Text("123")))
+    assert(runRule(int, "-123") === Some(Text("-123")))
     assert(runRule(int, "") === None)
     assert(runRule(int, "-") === None)
     assert(runRule(int, "a") === None)
@@ -51,11 +51,11 @@ class ParserSuite extends FunSuite {
     import p1._
     assert(runRule(double, "123") === None)
     assert(runRule(double, "-123") === None)
-    assert(runRule(double, "123.456") === Some(123.456))
-    assert(runRule(double, "-123.456") === Some(-123.456))
-    assert(runRule(double, ".123") === Some(0.123))
-    assert(runRule(double, "-.123") === Some(-0.123))
-    assert(runRule(double, "1.0") === Some(1.0))
+    assert(runRule(double, "123.456") === Some(Text("123.456")))
+    assert(runRule(double, "-123.456") === Some(Text("-123.456")))
+    assert(runRule(double, ".123") === Some(Text(".123")))
+    assert(runRule(double, "-.123") === Some(Text("-.123")))
+    assert(runRule(double, "1.0") === Some(Text("1.0")))
     assert(runRule(double, "") === None)
     assert(runRule(double, "-") === None)
     assert(runRule(double, ".") === None)
@@ -65,44 +65,45 @@ class ParserSuite extends FunSuite {
 
   test("boolean") {
     import p1._
-    assert(runRule(boolean, "true") === Some(true))
-    assert(runRule(boolean, "false") === Some(false))
+    assert(runRule(boolean, "true") === Some(Text("true")))
+    assert(runRule(boolean, "false") === Some(Text("false")))
     assert(runRule(boolean, "a") === None)
   }
 
   test("arg") {
     import p1._
-    assert(runRule(arg, "x=a") === Some(IdArgument(Id("x"), Id("a"))))
-    assert(runRule(arg, "x = a") === Some(IdArgument(Id("x"), Id("a"))))
-    assert(runRule(arg, "x=\"a\"") === Some(StringArgument(Id("x"), "a")))
-    assert(runRule(arg, "x = \"a\"") === Some(StringArgument(Id("x"), "a")))
-    assert(runRule(arg, "x=\"a\\\"b\"") === Some(StringArgument(Id("x"), "a\"b")))
-    assert(runRule(arg, "x = \"a\\\"b\"") === Some(StringArgument(Id("x"), "a\"b")))
-    assert(runRule(arg, "x=1") === Some(IntArgument(Id("x"), 1)))
-    assert(runRule(arg, "x = 1") === Some(IntArgument(Id("x"), 1)))
-    assert(runRule(arg, "x=1.0") === Some(DoubleArgument(Id("x"), 1.0)))
-    assert(runRule(arg, "x = 1.0") === Some(DoubleArgument(Id("x"), 1.0)))
-    assert(runRule(arg, "x=true") === Some(BooleanArgument(Id("x"), true)))
-    assert(runRule(arg, "x = true") === Some(BooleanArgument(Id("x"), true)))
+    assert(runRule(arg, "x=a") === Some(VariableArgument(Id("x"), Id("a"))))
+    assert(runRule(arg, "x = a") === Some(VariableArgument(Id("x"), Id("a"))))
+    assert(runRule(arg, "x=\"a\"") === Some(ConstantArgument(Id("x"), Text("a"))))
+    assert(runRule(arg, "x = \"a\"") === Some(ConstantArgument(Id("x"), Text("a"))))
+    assert(runRule(arg, "x=\"a\\\"b\"") === Some(ConstantArgument(Id("x"), Text("a\"b"))))
+    assert(runRule(arg, "x = \"a\\\"b\"") === Some(ConstantArgument(Id("x"), Text("a\"b"))))
+    assert(runRule(arg, "x=1") === Some(ConstantArgument(Id("x"), Text("1"))))
+    assert(runRule(arg, "x = 1") === Some(ConstantArgument(Id("x"), Text("1"))))
+    assert(runRule(arg, "x=1.0") === Some(ConstantArgument(Id("x"), Text("1.0"))))
+    assert(runRule(arg, "x = 1.0") === Some(ConstantArgument(Id("x"), Text("1.0"))))
+    assert(runRule(arg, "x = 1.") === Some(ConstantArgument(Id("x"), Text("1."))))
+    assert(runRule(arg, "x=true") === Some(ConstantArgument(Id("x"), Text("true"))))
+    assert(runRule(arg, "x = true") === Some(ConstantArgument(Id("x"), Text("true"))))
     assert(runRule(arg, "x") === Some(UnitArgument(Id("x"))))
   }
 
   test("argList") {
     import p1._
     assert(runRule(argList, "i=a j =1 k= 1.0 l m = \"a\" n  =  true") === Some(List(
-      IdArgument(Id("i"), Id("a")),
-      IntArgument(Id("j"), 1),
-      DoubleArgument(Id("k"), 1.0),
+      VariableArgument(Id("i"), Id("a")),
+      ConstantArgument(Id("j"), Text("1")),
+      ConstantArgument(Id("k"), Text("1.0")),
       UnitArgument(Id("l")),
-      StringArgument(Id("m"), "a"),
-      BooleanArgument(Id("n"), true)
+      ConstantArgument(Id("m"), Text("a")),
+      ConstantArgument(Id("n"), Text("true"))
     )))
   }
 
   test("simpleTag - {{ }}") {
     import p1._
     assert(runRule(simpleTag, "{{a}}") === Some(SimpleTag(Id("a"), Nil)))
-    assert(runRule(simpleTag, "{{ a b=1 }}") === Some(SimpleTag(Id("a"), List(IntArgument(Id("b"),1)))))
+    assert(runRule(simpleTag, "{{ a b=1 }}") === Some(SimpleTag(Id("a"), List(ConstantArgument(Id("b"), Text("1"))))))
     assert(runRule(simpleTag, "{{ a 1 }}") === None)
     assert(runRule(simpleTag, "[:a:]") === None)
   }
@@ -110,7 +111,7 @@ class ParserSuite extends FunSuite {
   test("openTag - {{ }}") {
     import p1._
     assert(runRule(openTag, "{{#a}}") === Some(OpenTag(Id("a"), Nil)))
-    assert(runRule(openTag, "{{# a b=1 }}") === Some(OpenTag(Id("a"), List(IntArgument(Id("b"), 1)))))
+    assert(runRule(openTag, "{{# a b=1 }}") === Some(OpenTag(Id("a"), List(ConstantArgument(Id("b"), Text("1"))))))
     assert(runRule(openTag, "{{# a 1 }}") === None)
   }
 
@@ -125,7 +126,7 @@ class ParserSuite extends FunSuite {
     import p2._
     assert(runRule(simpleTag, "[:a:]") === Some(SimpleTag(Id("a"), Nil)))
     assert(runRule(simpleTag, "[: a :]") === Some(SimpleTag(Id("a"), Nil)))
-    assert(runRule(simpleTag, "[: a b=1 :]") === Some(SimpleTag(Id("a"), List(IntArgument(Id("b"), 1)))))
+    assert(runRule(simpleTag, "[: a b=1 :]") === Some(SimpleTag(Id("a"), List(ConstantArgument(Id("b"), Text("1"))))))
     assert(runRule(simpleTag, "[: a 1 :]") === None)
     assert(runRule(simpleTag, "{{a}}") === None)
   }
@@ -133,7 +134,7 @@ class ParserSuite extends FunSuite {
   test("openTag - [: :]") {
     import p2._
     assert(runRule(openTag, "[:#a:]") === Some(OpenTag(Id("a"), Nil)))
-    assert(runRule(openTag, "[:# a b=1 :]") === Some(OpenTag(Id("a"), List(IntArgument(Id("b"), 1)))))
+    assert(runRule(openTag, "[:# a b=1 :]") === Some(OpenTag(Id("a"), List(ConstantArgument(Id("b"), Text("1"))))))
     assert(runRule(openTag, "[:# a 1 :]") === None)
   }
 

@@ -30,15 +30,4 @@ object Transform {
     def apply(in: (Env, Doc)) = (in._1, Range.Empty)
     override def toString = "Empty"
   }
-
-  def argToTransform(arg: Argument[_], env: Env): Transform = {
-    arg match {
-      case IdArgument(name, value)      => env.bindings.get(value).getOrElse(Constant(Range.Empty))
-      case StringArgument(name, value)  => Constant(Text(value))
-      case IntArgument(name, value)     => Constant(Text(value.toString))
-      case DoubleArgument(name, value)  => Constant(Text(value.toString))
-      case BooleanArgument(name, value) => Constant(Text(value.toString))
-      case UnitArgument(name)           => Constant(Range.Empty)
-    }
-  }
 }

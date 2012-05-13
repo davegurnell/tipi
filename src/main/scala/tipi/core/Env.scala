@@ -5,8 +5,8 @@ case class Env(val bindings: Map[Id, Transform]) {
     this(Map(bindings : _*))
   }
 
-  def get(id: Id): Transform = {
-    bindings.getOrElse(id, Transform.Empty)
+  def get(id: Id): Option[Transform] = {
+    bindings.get(id)
   }
 
   def + (binding: (Id, Transform)): Env = {
@@ -86,7 +86,10 @@ object Env {
   def fromArgs(initial: Env, args: Arguments): Env = {
     args.toList.foldLeft(initial) {
       (accum, arg) =>
-        accum + (arg.name -> Transform.argToTransform(arg, accum))
+        arg.transform(accum) match {
+          case Some(tx) => accum + (arg.name -> tx)
+          case None     => accum
+        }
     }
   }
 }

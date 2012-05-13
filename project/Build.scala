@@ -2,7 +2,9 @@ import sbt._
 import sbt.Keys._
 
 object Build extends Build {
-  lazy val scalatest = "org.scalatest"           %% "scalatest" % "1.7.1"
+  val tipiVersion = "0.1-M2"
+
+  lazy val scalatest = "org.scalatest" %% "scalatest" % "1.7.1"
 
   val complianceFiles = SettingKey[Seq[(String, String)]]("compliance-files")
   val complianceIndex = SettingKey[File]("compliance-index")
@@ -31,8 +33,8 @@ object Build extends Build {
     base = file("."),
     settings = Project.defaultSettings ++ Seq(
       organization := "com.untyped",
-      version := "0.1-M1",
       name := "tipi",
+      version := tipiVersion,
       scalaVersion := "2.9.1",
       scalacOptions += "-deprecation",
       scalacOptions += "-unchecked",

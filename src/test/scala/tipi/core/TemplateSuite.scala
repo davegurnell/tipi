@@ -81,11 +81,7 @@ class TemplateSuite extends FunSuite {
       Id("title") -> Transform.Constant(Text("Default title")),
       Id("author") -> Transform.Constant(Text("Default author"))
     )))
-    assert(bindTemplate.defnEnv === Env.basic ++ Env(Map(
-      Id("title") -> Transform.Constant(Range.Empty),
-      Id("author") -> Transform.Constant(Range.Empty),
-      Id("body") -> Transform.Constant(Range.Empty)
-    )))
+    assert(bindTemplate.defnEnv === Env.basic)
   }
 
   test("Template.isDefinedAt - args") {
