@@ -32,6 +32,9 @@ case class Parser(
   def apply(input: Reader[Char]): ParseResult[Doc] =
     parseAll(doc, input)
 
+  def apply(input: java.io.File): ParseResult[Doc] =
+    parseAll(doc, io.Source.fromFile(input).mkString)
+
   def doc: Parser[Doc] =
     (rep1(block) ^^ {
       case item :: Nil => item

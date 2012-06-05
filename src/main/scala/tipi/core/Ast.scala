@@ -18,4 +18,8 @@ object Range {
 
 case class Text(val value: String) extends Doc
 
-case class Id(val name: String)
+case class Id(val name: String) {
+  def prefix(prefix: Id): Id = {
+    Id(prefix.name + name)
+  }
+}

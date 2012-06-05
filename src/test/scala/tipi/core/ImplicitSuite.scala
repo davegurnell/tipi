@@ -9,7 +9,7 @@ class ImplicitsSuite extends FunSuite with TransformImplicits {
 
   val doc = Text("bar")
   val docTrans = Transform.Constant(doc)
-  val docEnv = Env(Map(id -> docTrans))
+  val docEnv = Env(id -> docTrans)
 
   test("stringToId") {
     assert(("foo" : Id) === id)
@@ -33,7 +33,7 @@ class ImplicitsSuite extends FunSuite with TransformImplicits {
 
   val docFunc: Function1[Doc, Doc] = { case Block(_, _, body) => body }
   val docFuncTrans = Transform.Simple(docFunc)
-  val docFuncEnv = Env(Map(id -> docFuncTrans))
+  val docFuncEnv = Env(id -> docFuncTrans)
 
   test("docFunctionToTransform") {
     assert((docFunc : Transform) === docFuncTrans)
@@ -49,7 +49,7 @@ class ImplicitsSuite extends FunSuite with TransformImplicits {
 
   val fullFunc: Function1[(Env, Doc), (Env, Doc)] = { case (env, Block(_, _, body)) => (env, body) }
   val fullFuncTrans = Transform.Full(fullFunc)
-  val fullFuncEnv = Env(Map(id -> fullFuncTrans))
+  val fullFuncEnv = Env(id -> fullFuncTrans)
 
   test("fullFunctionToTransform") {
     assert((fullFunc : Transform) === fullFuncTrans)

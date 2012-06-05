@@ -77,10 +77,12 @@ class TemplateSuite extends FunSuite {
   )
 
   test("Template.defnEnv") {
-    assert(argsTemplate.defnEnv === Env.basic ++ Env(Map(
-      Id("title") -> Transform.Constant(Text("Default title")),
-      Id("author") -> Transform.Constant(Text("Default author"))
-    )))
+    val expectedEnv = Env.basic ++ Env(
+      Id("author") -> Transform.Constant(Text("Default author")),
+      Id("title") -> Transform.Constant(Text("Default title"))
+    )
+
+    assert(argsTemplate.defnEnv.ids === expectedEnv.ids)
     assert(bindTemplate.defnEnv === Env.basic)
   }
 
