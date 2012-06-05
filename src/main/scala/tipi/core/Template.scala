@@ -19,13 +19,13 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
   def localEnv(callingEnv: Env, doc: Block): Env = {
     val thisKwEnv = Env.empty + (Id("this") -> Expand((callingEnv, doc.body))._2)
 
-    val argsEnv = Env.fromArgs(callingEnv, doc.args).filter(defnArgNames)
+    val argsEnv = Env.fromArgs(callingEnv, doc.args).only(defnArgNames : _*)
 
     val bindEnv = {
       def loop(env: Env, doc: Doc): Env = {
         doc match {
           case Block(Id("bind"), args, Range.Empty) =>
-            env ++ Env.fromArgs(callingEnv, args).filter(defnArgNames)
+            env ++ Env.fromArgs(callingEnv, args).only(defnArgNames : _*)
 
           case Block(Id("bind"), Arguments(UnitArgument(name) :: _), body) =>
             env + (name -> Expand((callingEnv, body))._2)
@@ -37,7 +37,7 @@ case class Template(val defn: Block, val globalEnv: Env) extends Transform with 
         }
       }
 
-      loop(Env.empty, doc.body).filter(defnArgNames)
+      loop(Env.empty, doc.body).only(defnArgNames : _*)
     }
 
     val bindKwEnv =

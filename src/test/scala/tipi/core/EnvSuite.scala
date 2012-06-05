@@ -17,6 +17,8 @@ class EnvSuite extends FunSuite {
     expect(Some(titleTx))(env.get(titleId))
     expect(Some(authorTx))(env.get(authorId))
     expect(None)(env.get(undefinedId))
+
+    expect(Seq(titleId, authorId))(env.ids)
   }
 
   test("SingleEnv") {
@@ -24,6 +26,8 @@ class EnvSuite extends FunSuite {
     expect(Some(titleTx))(env.get(titleId))
     expect(None)(env.get(authorId))
     expect(None)(env.get(undefinedId))
+
+    expect(Seq(titleId))(env.ids)
   }
 
   test("CompoundEnv") {
@@ -31,6 +35,8 @@ class EnvSuite extends FunSuite {
     expect(Some(titleTx))(env.get(titleId))
     expect(Some(authorTx))(env.get(authorId))
     expect(None)(env.get(undefinedId))
+
+    expect(Seq(titleId, authorId))(env.ids)
   }
 
   test("PrefixEnv") {
@@ -49,10 +55,12 @@ class EnvSuite extends FunSuite {
     expect(None)(env.get(titleId))
     expect(None)(env.get(authorId))
     expect(None)(env.get(undefinedId))
+
+    expect(Seq(titleId.prefix(Id("prefix:")), authorId.prefix(Id("prefix:"))))(env.ids)
   }
 
-  test("FilterEnv") {
-    val env = FilterEnv(
+  test("OnlyEnv") {
+    val env = OnlyEnv(
       List(titleId),
       CompoundEnv(
         SingleEnv(titleId, titleTx),
@@ -63,6 +71,24 @@ class EnvSuite extends FunSuite {
     expect(Some(titleTx))(env.get(titleId))
     expect(None)(env.get(authorId))
     expect(None)(env.get(undefinedId))
+
+    expect(Seq(titleId))(env.ids)
+  }
+
+  test("ExceptEnv") {
+    val env = ExceptEnv(
+      List(titleId),
+      CompoundEnv(
+        SingleEnv(titleId, titleTx),
+        SingleEnv(authorId, authorTx)
+      )
+    )
+
+    expect(None)(env.get(titleId))
+    expect(Some(authorTx))(env.get(authorId))
+    expect(None)(env.get(undefinedId))
+
+    expect(Seq(authorId))(env.ids)
   }
 
   test("CustomEnv") {
@@ -79,5 +105,7 @@ class EnvSuite extends FunSuite {
     expect(Some(Text("title")))(env.get(titleId).map(_.apply(Env.basic, Text(""))._2))
     expect(None)(env.get(authorId).map(_.apply(Env.basic, Text(""))))
     expect(None)(env.get(undefinedId))
+
+    expect(Seq(titleId))(env.ids)
   }
 }

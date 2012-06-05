@@ -7,7 +7,8 @@ trait Env {
   def + (binding: (Id, Transform)): Env = CompoundEnv(SingleEnv(binding), this)
   def ++ (that: Env): Env = CompoundEnv(that, this)
   def prefix(prefix: Id): Env = PrefixEnv(prefix, this)
-  def filter(names: List[Id]) = FilterEnv(names, this)
+  def only(ids: Id *) = OnlyEnv(ids.toList, this)
+  def except(ids: Id *) = ExceptEnv(ids.toList, this)
 }
 
 case class CompoundEnv(a: Env, b: Env) extends Env {
@@ -45,15 +46,23 @@ case class PrefixEnv(prefix: Id, inner: Env) extends Env {
   }
 }
 
-case class FilterEnv(allowed: List[Id], inner: Env) extends Env {
+case class OnlyEnv(allowed: List[Id], inner: Env) extends Env {
   def get(id: Id): Option[Transform] = {
-    if(allowed contains id) {
-      inner.get(id)
-    } else None
+    if(allowed contains id) inner.get(id) else None
   }
 
   def ids: Seq[Id] = {
     inner.ids filter (allowed contains _)
+  }
+}
+
+case class ExceptEnv(allowed: List[Id], inner: Env) extends Env {
+  def get(id: Id): Option[Transform] = {
+    if(allowed contains id) None else inner.get(id)
+  }
+
+  def ids: Seq[Id] = {
+    inner.ids filterNot (allowed contains _)
   }
 }
 
