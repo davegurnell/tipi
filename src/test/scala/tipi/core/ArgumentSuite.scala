@@ -9,21 +9,21 @@ class ArgumentSuite extends FunSuite with Implicits {
     VariableArgument("var", "x")
   ))
 
-  val testEnv = Env.empty + ("x" -> Text("y"))
+  val testEnv = Env.Empty + ("x" -> Text("y"))
 
   test("defined") {
-    assert(args.defined(Env.empty, "unit") === false)
-    assert(args.defined(Env.empty, "const") === true)
-    assert(args.defined(Env.empty, "var") === false)
+    assert(args.defined(Env.Empty, "unit") === false)
+    assert(args.defined(Env.Empty, "const") === true)
+    assert(args.defined(Env.Empty, "var") === false)
     assert(args.defined(testEnv, "var") === true)
-    assert(args.defined(Env.empty, "missing") === false)
+    assert(args.defined(Env.Empty, "missing") === false)
   }
 
   test("apply") {
-    intercept[ArgumentNotFoundException]{ args(Env.empty, "unit") }
-    assert(args(Env.empty, "const") === "foo")
-    intercept[ArgumentNotFoundException]{ args(Env.empty, "var") }
-    intercept[ArgumentNotFoundException]{ args(Env.empty, "missing") }
+    intercept[ArgumentNotFoundException]{ args(Env.Empty, "unit") }
+    assert(args(Env.Empty, "const") === "foo")
+    intercept[ArgumentNotFoundException]{ args(Env.Empty, "var") }
+    intercept[ArgumentNotFoundException]{ args(Env.Empty, "missing") }
 
     intercept[ArgumentNotFoundException]{ args(testEnv, "unit") }
     assert(args(testEnv, "const") === "foo")
@@ -32,10 +32,10 @@ class ArgumentSuite extends FunSuite with Implicits {
   }
 
   test("transform") {
-    assert(args.transform(Env.empty, "unit") === None)
-    assert(args.transform(Env.empty, "const") === Some(Transform.Constant(Text("foo"))))
-    assert(args.transform(Env.empty, "var") === None)
-    assert(args.transform(Env.empty, "missing") === None)
+    assert(args.transform(Env.Empty, "unit") === None)
+    assert(args.transform(Env.Empty, "const") === Some(Transform.Constant(Text("foo"))))
+    assert(args.transform(Env.Empty, "var") === None)
+    assert(args.transform(Env.Empty, "missing") === None)
 
     assert(args.transform(testEnv, "unit") === None)
     assert(args.transform(testEnv, "const") === Some(Transform.Constant(Text("foo"))))
@@ -44,10 +44,10 @@ class ArgumentSuite extends FunSuite with Implicits {
   }
 
   test("doc") {
-    assert(args.doc(Env.empty, "unit") === None)
-    assert(args.doc(Env.empty, "const") === Some(Text("foo")))
-    assert(args.doc(Env.empty, "var") === None)
-    assert(args.doc(Env.empty, "missing") === None)
+    assert(args.doc(Env.Empty, "unit") === None)
+    assert(args.doc(Env.Empty, "const") === Some(Text("foo")))
+    assert(args.doc(Env.Empty, "var") === None)
+    assert(args.doc(Env.Empty, "missing") === None)
 
     assert(args.doc(testEnv, "unit") === None)
     assert(args.doc(testEnv, "const") === Some(Text("foo")))
@@ -56,10 +56,10 @@ class ArgumentSuite extends FunSuite with Implicits {
   }
 
   test("string") {
-    assert(args.string(Env.empty, "unit") === None)
-    assert(args.string(Env.empty, "const") === Some("foo"))
-    assert(args.string(Env.empty, "var") === None)
-    assert(args.string(Env.empty, "missing") === None)
+    assert(args.string(Env.Empty, "unit") === None)
+    assert(args.string(Env.Empty, "const") === Some("foo"))
+    assert(args.string(Env.Empty, "var") === None)
+    assert(args.string(Env.Empty, "missing") === None)
 
     assert(args.string(testEnv, "unit") === None)
     assert(args.string(testEnv, "const") === Some("foo"))

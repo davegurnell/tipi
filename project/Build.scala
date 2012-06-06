@@ -2,7 +2,7 @@ import sbt._
 import sbt.Keys._
 
 object Build extends Build {
-  val tipiVersion = "0.1-M3"
+  val tipiVersion = "0.1-M4"
 
   lazy val scalatest = "org.scalatest" %% "scalatest" % "1.7.1"
 

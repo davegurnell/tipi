@@ -7,6 +7,7 @@ class TemplateSuite extends FunSuite {
   val parse = Parser("{{", "}}")
 
   val argsTemplate = Template(
+    Env.Basic,
     parse(
       """
       |{{# def page title="Default title" author="Default author" }}
@@ -19,12 +20,11 @@ class TemplateSuite extends FunSuite {
       |</html>
       |{{/ def }}
       """.trim.stripMargin
-    ).get.asInstanceOf[Block],
-    Env.basic
+    ).get.asInstanceOf[Block]
   )
 
   val argsIn = (
-    Env.basic,
+    Env.Basic,
     parse(
       """
       |{{# page title="Title" author="Author" }}
@@ -37,6 +37,7 @@ class TemplateSuite extends FunSuite {
   )
 
   val bindTemplate = Template(
+    Env.Basic,
     parse(
       """
       |{{# def page title author body }}
@@ -49,12 +50,11 @@ class TemplateSuite extends FunSuite {
       |</html>
       |{{/ def }}
       """.trim.stripMargin
-    ).get.asInstanceOf[Block],
-    Env.basic
+    ).get.asInstanceOf[Block]
   )
 
   val bindIn = (
-    Env.basic,
+    Env.Basic,
     parse(
       """
       |{{# page }}
@@ -67,7 +67,7 @@ class TemplateSuite extends FunSuite {
   )
 
   val wrongNameIn = (
-    Env.basic,
+    Env.Basic,
     parse(
       """
       {{# pages title="Title" body="Body" }}
@@ -77,13 +77,13 @@ class TemplateSuite extends FunSuite {
   )
 
   test("Template.defnEnv") {
-    val expectedEnv = Env.basic ++ Env(
+    val expectedEnv = Env.Basic ++ Env(
       Id("author") -> Transform.Constant(Text("Default author")),
       Id("title") -> Transform.Constant(Text("Default title"))
     )
 
     assert(argsTemplate.defnEnv.ids === expectedEnv.ids)
-    assert(bindTemplate.defnEnv === Env.basic)
+    assert(bindTemplate.defnEnv === Env.Basic)
   }
 
   test("Template.isDefinedAt - args") {

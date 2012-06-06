@@ -2,6 +2,16 @@ package tipi.core
 
 import org.scalatest._
 
+class TestEnv extends Env.Custom {
+  def foo(env: Env, doc: Doc) = {
+    (env, Text("foo"))
+  }
+
+  def bar(env: Env, doc: Doc) = {
+    (env, Text("BAR"))
+  }
+}
+
 class ExpandSuite extends FunSuite {
 
   val parser = Parser("{{", "}}")
@@ -24,7 +34,7 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      Render(Expand((Env.basic, parser(source).get))) ===
+      Render(Expand((Env.Basic, parser(source).get))) ===
       """
       |
       |
@@ -44,7 +54,7 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      Render(Expand((Env.basic, parser(source).get))) ===
+      Render(Expand((Env.Basic, parser(source).get))) ===
       """
       |
       |
@@ -62,7 +72,7 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      Render(Expand((Env.basic, parser(source).get))) ===
+      Render(Expand((Env.Basic, parser(source).get))) ===
       """
       |
       |
@@ -80,7 +90,7 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      Render(Expand((Env.basic, parser(source).get))) ===
+      Render(Expand((Env.Basic, parser(source).get))) ===
       """
       |
       |
@@ -100,7 +110,7 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      Render(Expand((Env.basic, parser(source).get))) ===
+      Render(Expand((Env.Basic, parser(source).get))) ===
       """
       |
       |
@@ -119,7 +129,7 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      Render(Expand((Env.basic, parser(source).get))) ===
+      Render(Expand((Env.Basic, parser(source).get))) ===
       """
       |
       |xx
@@ -134,10 +144,39 @@ class ExpandSuite extends FunSuite {
       """.trim.stripMargin
 
     assert {
-      Render(Expand((Env.basic, parser(source).get))) ===
+      Render(Expand((Env.Basic, parser(source).get))) ===
       """
       |
       """.trim.stripMargin
+    }
+  }
+
+  test("import") {
+    val source =
+      """
+      |{{ import class="tipi.core.TestEnv" }}
+      |{{ foo }}
+      |{{ bar }}
+      """.trim.stripMargin
+
+    assert {
+      Render(Expand((Env.Basic, parser(source).get))) ===
+      """
+      |
+      |foo
+      |BAR
+      """.trim.stripMargin
+    }
+  }
+
+  test("import - class not found") {
+    val source =
+      """
+      |{{ import class="tipi.core.MissingEnv" }}
+      """.trim.stripMargin
+
+    intercept[java.lang.reflect.InvocationTargetException] {
+      Render(Expand((Env.Basic, parser(source).get)))
     }
   }
 }

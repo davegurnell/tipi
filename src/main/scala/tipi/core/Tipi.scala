@@ -8,7 +8,7 @@ case class Tipi(
   val simpleTagEnd:   String = "}}",
   val blockStart:     String = "#",
   val blockEnd:       String = "/",
-  val globalEnv:      Env    = Env.basic
+  val globalEnv:      Env    = Env.Basic
 ) {
   val parse = Parser(
     simpleTagStart = simpleTagStart,

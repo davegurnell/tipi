@@ -12,8 +12,8 @@ class EnvSuite extends FunSuite {
 
   val undefinedId = Id("undefined")
 
-  test("MapEnv") {
-    val env = MapEnv(Map(titleId -> titleTx, authorId -> authorTx))
+  test("Env.Simple") {
+    val env = Env.Simple(Map(titleId -> titleTx, authorId -> authorTx))
     expect(Some(titleTx))(env.get(titleId))
     expect(Some(authorTx))(env.get(authorId))
     expect(None)(env.get(undefinedId))
@@ -21,17 +21,12 @@ class EnvSuite extends FunSuite {
     expect(Seq(titleId, authorId))(env.ids)
   }
 
-  test("SingleEnv") {
-    val env = SingleEnv(titleId, titleTx)
-    expect(Some(titleTx))(env.get(titleId))
-    expect(None)(env.get(authorId))
-    expect(None)(env.get(undefinedId))
+  test("Env.Union") {
+    val env = Env.Union(
+      Env(titleId -> titleTx),
+      Env(authorId -> authorTx)
+    )
 
-    expect(Seq(titleId))(env.ids)
-  }
-
-  test("CompoundEnv") {
-    val env = CompoundEnv(SingleEnv(titleId, titleTx), SingleEnv(authorId, authorTx))
     expect(Some(titleTx))(env.get(titleId))
     expect(Some(authorTx))(env.get(authorId))
     expect(None)(env.get(undefinedId))
@@ -39,13 +34,10 @@ class EnvSuite extends FunSuite {
     expect(Seq(titleId, authorId))(env.ids)
   }
 
-  test("PrefixEnv") {
-    val env = PrefixEnv(
+  test("Env.Prefix") {
+    val env = Env.Prefix(
       Id("prefix:"),
-      CompoundEnv(
-        SingleEnv(titleId, titleTx),
-        SingleEnv(authorId, authorTx)
-      )
+      Env(titleId -> titleTx, authorId -> authorTx)
     )
 
     expect(Some(titleTx))(env.get(titleId.prefix(Id("prefix:"))))
@@ -59,13 +51,10 @@ class EnvSuite extends FunSuite {
     expect(Seq(titleId.prefix(Id("prefix:")), authorId.prefix(Id("prefix:"))))(env.ids)
   }
 
-  test("OnlyEnv") {
-    val env = OnlyEnv(
+  test("Env.Only") {
+    val env = Env.Only(
       List(titleId),
-      CompoundEnv(
-        SingleEnv(titleId, titleTx),
-        SingleEnv(authorId, authorTx)
-      )
+      Env(titleId -> titleTx, authorId -> authorTx)
     )
 
     expect(Some(titleTx))(env.get(titleId))
@@ -75,13 +64,10 @@ class EnvSuite extends FunSuite {
     expect(Seq(titleId))(env.ids)
   }
 
-  test("ExceptEnv") {
-    val env = ExceptEnv(
+  test("Env.Except") {
+    val env = Env.Except(
       List(titleId),
-      CompoundEnv(
-        SingleEnv(titleId, titleTx),
-        SingleEnv(authorId, authorTx)
-      )
+      Env(titleId -> titleTx, authorId -> authorTx)
     )
 
     expect(None)(env.get(titleId))
@@ -91,8 +77,8 @@ class EnvSuite extends FunSuite {
     expect(Seq(authorId))(env.ids)
   }
 
-  test("CustomEnv") {
-    val env = new CustomEnv {
+  test("Env.Custom") {
+    val env = new Env.Custom {
       def title(env: Env, doc: Doc): (Env, Doc) = {
         (env, Text("title"))
       }
@@ -102,8 +88,8 @@ class EnvSuite extends FunSuite {
       }
     }
 
-    expect(Some(Text("title")))(env.get(titleId).map(_.apply(Env.basic, Text(""))._2))
-    expect(None)(env.get(authorId).map(_.apply(Env.basic, Text(""))))
+    expect(Some(Text("title")))(env.get(titleId).map(_.apply(Env.Basic, Text(""))._2))
+    expect(None)(env.get(authorId).map(_.apply(Env.Basic, Text(""))))
     expect(None)(env.get(undefinedId))
 
     expect(Seq(titleId))(env.ids)

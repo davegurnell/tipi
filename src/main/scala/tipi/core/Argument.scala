@@ -57,6 +57,16 @@ case class Arguments(arguments: List[Argument]) {
   }
 
   def toList = arguments
+
+  def toEnv(base: Env): Env = {
+    arguments.foldLeft(base) {
+      (accum, arg) =>
+        arg.transform(accum) match {
+          case Some(tx) => accum + (arg.name -> tx)
+          case None     => accum
+        }
+    }
+  }
 }
 
 object Arguments {
