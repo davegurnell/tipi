@@ -35,7 +35,7 @@ object Build extends Build {
       organization := "com.untyped",
       name := "tipi",
       version := tipiVersion,
-      scalaVersion := "2.9.1",
+      scalaVersion := "2.9.2",
       scalacOptions += "-deprecation",
       scalacOptions += "-unchecked",
       libraryDependencies ++= Seq(
